@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet"
 import Footer from "../include/footer"
-import Header from "../include/header"
 import Spinner from "../include/spinner"
 import { useEffect, useState } from "react"
 import SearchModel from "../include/searchModel"
@@ -30,7 +29,6 @@ const NotFound = ()=>{
                 {
                     loading? <Spinner /> : ''
                 }
-            <Header />
 
                 {/* <!-- Single Page Header start --> */}
                 <div class="container-fluid page-header py-5">

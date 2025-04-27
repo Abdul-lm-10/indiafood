@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Home from './components/pages/home';
 import Categories from './components/pages/category';
 import ProductList from './components/pages/productsList';
@@ -19,45 +19,49 @@ import EditProfile from './components/pages/user-auth/dashboard/edit-profile';
 import Logout from './components/pages/user-auth/logout';
 import CategoryProductList from './components/pages/categoryProductList';
 import { CartProvider } from './context/CartContext';
- 
+import Header from './components/include/header';
+import { CountryProvider } from './context/CountryContext';
+
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
   return user ? children : <Navigate to="/login" />;
 };
 
-function App() {  
-
+function App() {
   return (
-      <>
-        <AuthProvider>
+    <>
+      <AuthProvider>
         <CartProvider>
-          <Router>       
-            <ScrollManager />   
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/category/:id" element={<CategoryProductList />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/product/:slug" element={<ProductDetails />} />  
-              <Route path="/cart" element={<Cart />} />   
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />   
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />  
-              <Route path="/checkout" element={<Checkout />} />                     
-              <Route path="/login" element={<AuthPage />} />  
-              <Route
-            path="/dashboard/my-profile"
-            element={
-              <ProtectedRoute>
-                <EditProfile />
-              </ProtectedRoute> }/>   
-              <Route path="/logout" element={<Logout />} />
-              <Route path="*" element={<NotFound />}/>                                                   
-            </Routes>
-          </Router>
-          </CartProvider>
-        </AuthProvider>
-      </>
+          <CountryProvider>
+            <Router>
+              <ScrollManager />
+              <Header />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/category/:id" element={<CategoryProductList />} />
+                <Route path="/products" element={<ProductList />} />
+                <Route path="/product/:slug" element={<ProductDetails />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route
+                  path="/dashboard/my-profile"
+                  element={
+                    <ProtectedRoute>
+                      <EditProfile />
+                    </ProtectedRoute>} />
+                <Route path="/logout" element={<Logout />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </CountryProvider>
+        </CartProvider>
+      </AuthProvider>
+    </>
   );
 }
 

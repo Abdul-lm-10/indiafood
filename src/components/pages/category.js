@@ -1,46 +1,89 @@
 import { useEffect, useState } from "react";
-import Header from "../include/header";
 import Footer from "../include/footer";
 import Spinner from "../include/spinner";
 import { Helmet } from "react-helmet";
 import SearchModel from "../include/searchModel";
 import { Link } from "react-router-dom";
 import CategoriesListComponent from "./order/categriesList";
+import axios from "axios";
+import { useCart } from "../../context/CartContext";
+import { useCountry } from "../../context/CountryContext";
 
 const Categories = () => {
 
     const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState([]);
+    const { addToCart } = useCart();
+    const [products, setProducts] = useState([]);
+    const [error, setError] = useState(null);
+    const { selectedCountryId } = useCountry();
 
     useEffect(() => {
-      const timer = setTimeout(() => {
-        setLoading(false); 
-      }, 100);
-  
-      return () => clearTimeout(timer);
+
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('https://api.indiafoodshop.com/admin/get-categories');
+                console.log(response.data.data);
+
+                setCategories(response.data.data);
+                setLoading(false);
+            } catch (error) {
+                console.log('Failed to fetch products');
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const res = await fetch(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
+                const data = await res.json();
+                console.log("Fetched Products:", data);
+                setProducts(data);
+            } catch (err) {
+                console.error("Error fetching products:", err);
+                setError("Failed to fetch products.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, [selectedCountryId]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 100);
+
+        return () => clearTimeout(timer);
     }, []);
 
     return (
         <>
 
             <Helmet>
-                <title>Category List | India Food Shop</title>                
+                <title>Category List | India Food Shop</title>
                 <link href="/external-assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet" />
-                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />                
-                <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />                
+                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+                <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
             </Helmet>
             {
-               loading? <Spinner /> : ''
+                loading ? <Spinner /> : ''
             }
 
-            <Header />
             <SearchModel />
- 
+
 
             <div class="container-fluid page-header py-5">
                 <h1 class="text-center text-white display-6">Categories</h1>
                 <ol class="breadcrumb justify-content-center mb-0">
-                    <li class="breadcrumb-item"><Link to={'/'}>Home</Link></li>                    
+                    <li class="breadcrumb-item"><Link to={'/'}>Home</Link></li>
                     <li class="breadcrumb-item active text-white">Categories</li>
                 </ol>
             </div>
@@ -72,11 +115,11 @@ const Categories = () => {
                                 </div>
                             </div>
                             <div class="row g-4">
-                            <div class="col-lg-9">
+                                <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        
+
                                         <CategoriesListComponent />
-                                       
+
                                         {/* <div class="col-12">
                                             <div class="pagination d-flex justify-content-center mt-5">
                                                 <a href="#" class="rounded">&laquo;</a>
@@ -97,113 +140,59 @@ const Categories = () => {
                                             <div class="mb-3">
                                                 <h4>Categories</h4>
                                                 <ul class="list-unstyled fruite-categorie">
-                                                    <li>
-                                                        <div class="d-flex justify-content-between fruite-name">
-                                                            <a href="#"><i class="fas fa-apple-alt me-2"></i>Apples</a>
-                                                            <span>(3)</span>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="d-flex justify-content-between fruite-name">
-                                                            <a href="#"><i class="fas fa-apple-alt me-2"></i>Oranges</a>
-                                                            <span>(5)</span>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="d-flex justify-content-between fruite-name">
-                                                            <a href="#"><i class="fas fa-apple-alt me-2"></i>Strawbery</a>
-                                                            <span>(2)</span>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="d-flex justify-content-between fruite-name">
-                                                            <a href="#"><i class="fas fa-apple-alt me-2"></i>Banana</a>
-                                                            <span>(8)</span>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="d-flex justify-content-between fruite-name">
-                                                            <a href="#"><i class="fas fa-apple-alt me-2"></i>Pumpkin</a>
-                                                            <span>(5)</span>
-                                                        </div>
-                                                    </li>
+                                                    {categories.map((category) => (
+                                                        <li>
+                                                            <div class="d-flex justify-content-between fruite-name">
+                                                                <a href="#"><i class="fas fa-apple-alt me-2"></i>{category.name}</a>
+                                                                <span>(3)</span>
+                                                            </div>
+                                                        </li>
+                                                    ))}
                                                 </ul>
                                             </div>
                                         </div>
-                                                                              
+
                                         <div class="col-lg-12">
                                             <h4 class="mb-3">Featured products</h4>
-                                            <div class="d-flex align-items-center justify-content-start">
-                                                <div class="rounded me-4" style={{width: '100px', height: '100px'}}>
-                                                    <img src="img/featur-1.jpg" class="img-fluid rounded" alt="" />
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-2">Big Banana</h6>
-                                                    <div class="d-flex mb-2">
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star"></i>
+                                            {Array.isArray(products) &&  products.slice(0, 4).map((product) => (
+                                                <div class="d-flex align-items-center justify-content-start">
+                                                    <div class="rounded me-4" style={{ width: '100px', height: '100px' }}>
+                                                        <img src={`https://api.indiafoodshop.com${product.image}`} class="img-fluid rounded" alt="" />
                                                     </div>
-                                                    <div class="d-flex mb-2">
-                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-start">
-                                                <div class="rounded me-4" style={{width: '100px', height: '100px'}}>
-                                                    <img src="img/featur-2.jpg" class="img-fluid rounded" alt="" />
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-2">Big Banana</h6>
-                                                    <div class="d-flex mb-2">
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="d-flex mb-2">
-                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
+                                                    <div>
+                                                        <h6 class="mb-2">{product.name}</h6>
+                                                        <div class="d-flex mb-2">
+                                                            <i class="fa fa-star text-secondary"></i>
+                                                            <i class="fa fa-star text-secondary"></i>
+                                                            <i class="fa fa-star text-secondary"></i>
+                                                            <i class="fa fa-star text-secondary"></i>
+                                                            <i class="fa fa-star"></i>
+                                                        </div>
+                                                        <div class="d-flex mb-2">
+                                                            <h5 class="fw-bold me-2">{product.prices.map((item, idx) => (
+                                                                <p key={idx} className="text-dark fs-6 mb-0">
+                                                                    ₹{item.price} / {item.quantity}
+                                                                </p>
+                                                            ))}</h5>
+                                                            {/* <h5 class="text-danger text-decoration-line-through">4.11 $</h5> */}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-start">
-                                                <div class="rounded me-4" style={{width: '100px', height: '100px'}}>
-                                                    <img src="img/featur-3.jpg" class="img-fluid rounded" alt="" />
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-2">Big Banana</h6>
-                                                    <div class="d-flex mb-2">
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star text-secondary"></i>
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="d-flex mb-2">
-                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            ))}
                                             <div class="d-flex justify-content-center my-4">
-                                                <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">Vew More</a>
+                                                <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">View More</a>
                                             </div>
                                         </div>
                                         <div class="col-lg-12">
                                             <div class="position-relative">
                                                 <img src="img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="" />
-                                                <div class="position-absolute" style={{top: '50%', right: '10px', transform: 'translateY(-50%)'}}>
+                                                <div class="position-absolute" style={{ top: '50%', right: '10px', transform: 'translateY(-50%)' }}>
                                                     <h3 class="text-secondary fw-bold">Fresh Banner</h3>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>                              
+                                </div>
                             </div>
                         </div>
                     </div>

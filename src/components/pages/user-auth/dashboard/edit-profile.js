@@ -2,7 +2,6 @@ import { Helmet } from "react-helmet"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import Footer from "../../../include/footer"
-import Header from "../../../include/header"
 import Spinner from "../../../include/spinner"
 import SearchModel from "../../../include/searchModel"
 
@@ -30,7 +29,6 @@ const EditProfile = () =>{
                 {
                     loading? <Spinner /> : ''
                 }
-            <Header />
            
             <SearchModel />
                
