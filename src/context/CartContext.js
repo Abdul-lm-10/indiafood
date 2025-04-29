@@ -61,7 +61,7 @@ export const CartProvider = ({ children }) => {
         await axios.post(`https://api.indiafoodshop.com/api/auth/v1/cart`, payload); // 👉 corrected URL
       }
   
-      fetchCart(); // Refresh cart
+      fetchCart();
     } catch (err) {
       console.error("Failed to add to cart:", err.response?.data || err.message);
     }

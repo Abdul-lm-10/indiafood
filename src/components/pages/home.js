@@ -232,8 +232,12 @@ const Home = () => {
                                                 filteredProducts.map((product) => (
                                                     <div key={product._id} className="col-md-6 col-lg-4 col-xl-3">
                                                         <div className="rounded position-relative fruite-item">
-                                                            <div className="fruite-img">
-                                                                <img src={`https://api.indiafoodshop.com${product.image}`} className="img-fluid w-100 rounded-top" alt={product.name} />
+                                                            <div className="fruite-img" style={{ height: '250px', overflow: 'hidden' }}>
+                                                                <img
+                                                                    src={`https://api.indiafoodshop.com${product.image}`}
+                                                                    className="img-fluid w-100 h-100 rounded-top object-fit-cover"
+                                                                    alt={product.name}
+                                                                />
                                                             </div>
                                                             <div className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: '10px', left: '10px' }}>
                                                                 {product.category}
@@ -486,10 +490,10 @@ const Home = () => {
                             <div className="col-lg-6 col-xl-4" key={product._id}>
                                 <div className="p-4 rounded bg-light">
                                     <div className="row align-items-center">
-                                        <div className="col-6">
+                                        <div className="col-6" style={{ height: '200px', overflow: 'hidden' }}>
                                             <img
                                                 src={`https://api.indiafoodshop.com${product.image}`}
-                                                className="img-fluid rounded-circle w-100"
+                                                className="img-fluid rounded-circle w-100 h-100 object-fit-cover"
                                                 alt={product.name}
                                             />
                                         </div>
@@ -507,7 +511,7 @@ const Home = () => {
                                                     ₹{item.price} / {item.quantity}
                                                 </p>
                                             ))}</h4>
-                                            <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary" onClick={() => addToCart(product, selectedCountryId)}>
+                                            <a className="btn border border-secondary rounded-pill px-3 text-primary" onClick={() => addToCart(product, selectedCountryId)}>
                                                 <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                             </a>
                                         </div>
@@ -518,11 +522,13 @@ const Home = () => {
                         {Array.isArray(products) && products.slice(0, 4).map((product) => (
                             <div className="col-md-6 col-lg-6 col-xl-3" key={product._id}>
                                 <div className="text-center">
-                                    <img
-                                        src={`https://api.indiafoodshop.com${product.image}`}
-                                        className="img-fluid rounded"
-                                        alt={product.name}
-                                    />
+                                    <div style={{ height: '250px', overflow: 'hidden' }}>
+                                        <img
+                                            src={`https://api.indiafoodshop.com${product.image}`}
+                                            className="img-fluid rounded w-100 h-100 object-fit-cover"
+                                            alt={product.name}
+                                        />
+                                    </div>
                                     <div className="py-4">
                                         <a href="#" className="h5">{product.name}</a>
                                         <div className="d-flex my-3 justify-content-center">

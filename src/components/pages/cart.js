@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import SearchModel from "../include/searchModel";
 import { useCart } from "../../context/CartContext";
 import { useCountry } from "../../context/CountryContext";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const [loading, setLoading] = useState(true);
   const { cart, setCart, removeFromCart, addToCart, updateCartItem, clearCart } = useCart(); // ✅ now using ALL
   const user = JSON.parse(localStorage.getItem("user"));
     const { selectedCountryId } = useCountry();
+    const navigate=useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -151,7 +153,7 @@ const Cart = () => {
                       <h5 className="mb-0 ps-4 me-4">Total</h5>
                       <p className="mb-0 pe-4">₹{total.toFixed(2)}</p>
                     </div>
-                    <button className="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4" type="button">
+                    <button className="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4" type="button" onClick={()=>navigate("/checkout")}>
                       Proceed to Checkout
                     </button>
                   </div>
