@@ -6,7 +6,7 @@ import Spinner from '../include/spinner';
 import { Helmet } from 'react-helmet';
 
 const Checkout = () => {
-    const { cart } = useCart(); // ✅ now using ALL
+    const { cart } = useCart();
     const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
