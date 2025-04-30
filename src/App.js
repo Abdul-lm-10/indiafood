@@ -21,6 +21,7 @@ import CategoryProductList from './components/pages/categoryProductList';
 import { CartProvider } from './context/CartContext';
 import Header from './components/include/header';
 import { CountryProvider } from './context/CountryContext';
+import OrderPage from './components/pages/OrderPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/login" element={<AuthPage />} />
+                <Route path="/order" element={<OrderPage />} />
                 <Route
                   path="/dashboard/my-profile"
                   element={
