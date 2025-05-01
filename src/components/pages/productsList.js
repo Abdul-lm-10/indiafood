@@ -6,10 +6,12 @@ import SearchModel from "../include/searchModel";
 import ProductListComponent from "./order/productList";
 import FeaturedProducts from "./order/featuredProducts";
 import CategoriesGroup from "./order/categoriesGroup";
+import { useCountry } from "../../context/CountryContext";
 
 const ProductList = () =>{
 
     const [loading, setLoading] = useState(true);
+    const { selectedCountryId } = useCountry();
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -72,7 +74,7 @@ const ProductList = () =>{
                                 {/* Products List Start */}
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        <ProductListComponent />
+                                        <ProductListComponent selectedCountryId={selectedCountryId}/>
                                     </div>
                                 </div>
                                 {/* Products List End */}
