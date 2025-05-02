@@ -22,6 +22,7 @@ import { CartProvider } from './context/CartContext';
 import Header from './components/include/header';
 import { CountryProvider } from './context/CountryContext';
 import OrderPage from './components/pages/OrderPage';
+import About from './components/pages/aboutUs';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -43,13 +44,23 @@ function App() {
                 <Route path="/category/:id" element={<CategoryProductList />} />
                 <Route path="/products" element={<ProductList />} />
                 <Route path="/product/:slug" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
+                <Route path="/cart" element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                } />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/checkout" element={<Checkout />} />
+
+                <Route path="/checkout" element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                } />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/order" element={<OrderPage />} />
+                <Route path="/aboutus" element={<About />} />
                 <Route
                   path="/dashboard/my-profile"
                   element={
