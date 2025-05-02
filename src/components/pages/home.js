@@ -2,14 +2,15 @@ import Copyright from "../include/copyright";
 import Footer from "../include/footer";
 import Spinner from "../include/spinner";
 import { Helmet } from "react-helmet";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import SearchModel from "../include/searchModel";
 import { useCart } from "../../context/CartContext";
 import axios from "axios";
 import { useCountry } from "../../context/CountryContext";
 
 const Home = () => {
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('All');
@@ -98,6 +99,26 @@ const Home = () => {
             });
         }
     }, [products]);
+
+    //Category page route
+    const handleCategoryClick = () => {
+        navigate("/categories");
+    };
+
+    //Category page route for vegtables
+    const vegetableProducts = Array.isArray(products)
+        ? products.filter(product => product.category.toLowerCase() === 'vegetables')
+        : [];
+
+    const vegetableCategoryId = vegetableProducts[0]?.category_id;
+
+    //Category page route for fruits
+    const fruitsProducts = Array.isArray(products)
+        ? products.filter(product => product.category.toLowerCase() === 'fruits')
+        : [];
+
+    const fruitCategoryId = fruitsProducts[0]?.category_id;
+
     return (
         <>
             <Helmet>
@@ -134,13 +155,13 @@ const Home = () => {
                         <div className="col-md-12 col-lg-5">
                             <div id="carouselId" className="carousel slide position-relative" data-bs-ride="carousel">
                                 <div className="carousel-inner" role="listbox">
-                                    <div className="carousel-item active rounded">
+                                    <div className="carousel-item active rounded " onClick={handleCategoryClick}>
                                         <img src="img/hero-img-1.png" className="img-fluid w-100 h-100 bg-secondary rounded" alt="First slide" />
-                                        <a href="#" className="btn px-4 py-2 text-white rounded">Fruites</a>
+                                        <a className="btn px-4 py-2 text-white rounded">Fruites</a>
                                     </div>
-                                    <div className="carousel-item rounded">
+                                    <div className="carousel-item rounded" onClick={handleCategoryClick}>
                                         <img src="img/hero-img-2.jpg" className="img-fluid w-100 h-100 rounded" alt="Second slide" />
-                                        <a href="#" className="btn px-4 py-2 text-white rounded">Vegetables</a>
+                                        <a href="/categories" className="btn px-4 py-2 text-white rounded">Vegetables</a>
                                     </div>
                                 </div>
                                 <button className="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">
@@ -384,43 +405,58 @@ const Home = () => {
             <div className="container-fluid vesitable py-5">
                 <div className="container py-5">
                     <h1 className="mb-0">Fresh Organic Vegetables</h1>
-                    <div className="owl-carousel vegetable-carousel justify-content-center">
-                        {Array.isArray(products) && products
-                            .filter(product => product.category.toLowerCase() === 'vegetables')
-                            .slice(0, 8)
-                            .map((product) => (
-                                <div key={product._id} className="border border-primary rounded position-relative vesitable-item">
-                                    <div className="vesitable-img" style={{ height: '250px', overflow: 'hidden' }}>
-                                        <img
-                                            src={`https://api.indiafoodshop.com${product.image}`}
-                                            className="img-fluid w-100 h-100 rounded-top object-fit-cover"
-                                            alt={product.name}
-                                        />
-                                    </div>
-                                    <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>
-                                        {product.category}
-                                    </div>
-                                    <div className="p-4 rounded-bottom">
-                                        <h4>{product.name}</h4>
-                                        <p>{product.description}</p>
-                                        <div className="d-flex justify-content-between flex-lg-wrap">
-                                            <div>
-                                                {product.prices.map((item, idx) => (
-                                                    <p key={idx} className="text-dark fs-5 fw-bold mb-0">
-                                                        ₹{item.price} / {item.quantity}
-                                                    </p>
-                                                ))}
+                    <div className="col-lg-12 mt-5">
+                        <div className="row g-4">
+                            {Array.isArray(products) && products
+                                .filter(product => product.category.toLowerCase() === 'vegetables')
+                                .slice(0, 8)
+                                .map((product) => (
+                                    <div key={product._id} className="col-md-6 col-lg-4 col-xl-3">
+                                        <div className="rounded position-relative fruite-item">
+                                            <div className="fruite-img" style={{ height: '250px', overflow: 'hidden' }}>
+                                                <Link to={`/product/${product._id}`}>
+                                                    <img
+                                                        src={`https://api.indiafoodshop.com${product.image}`}
+                                                        className="img-fluid w-100 h-100 rounded-top object-fit-cover"
+                                                        alt={product.name}
+                                                    />
+                                                </Link>
                                             </div>
-                                            <button
-                                                onClick={() => addToCart(product, selectedCountryId)}
-                                                className="btn border border-secondary rounded-pill px-3 text-primary"
-                                            >
-                                                <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
-                                            </button>
+                                            <div className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: '10px', left: '10px' }}>
+                                                {product.category}
+                                            </div>
+                                            <div className="p-4 border border-secondary border-top-0 rounded-bottom">
+                                                <h4>{product.name.trim()}</h4>
+                                                <p>{product.description.trim()}</p>
+                                                <div className="d-flex justify-content-between flex-lg-wrap">
+                                                    <div>
+                                                        {product.prices.map((item, idx) => (
+                                                            <p key={idx} className="text-dark fs-6 mb-0">
+                                                                ₹{item.price} / {item.quantity}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => addToCart(product, selectedCountryId)}
+                                                        className="btn border border-secondary rounded-pill px-3 text-primary"
+                                                    >
+                                                        <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+
+                            {/* View More Button */}
+                            <div className="text-center mt-4">
+                                <Link to={`/category/${vegetableCategoryId}`}>
+                                    <button className="btn btn-primary px-4 py-2 rounded-pill text-white">
+                                        View More
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -436,7 +472,10 @@ const Home = () => {
                                 <h1 className="display-3 text-white">Fresh Exotic Fruits</h1>
                                 <p className="fw-normal display-3 text-dark mb-4">in Our Store</p>
                                 <p className="mb-4 text-dark">The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic words etc.</p>
-                                <a href="#" className="banner-btn btn border-2 border-white rounded-pill text-dark py-3 px-5">BUY</a>
+                                {/* View More Button */}
+                                <Link to={`/category/${fruitCategoryId}`}>
+                                    <a className="banner-btn btn border-2 border-white rounded-pill text-dark py-3 px-5">BUY</a>
+                                </Link>
                             </div>
                         </div>
                         <div className="col-lg-6">
