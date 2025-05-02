@@ -14,6 +14,7 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true);
     const { selectedCountryId } = useCountry();
     const [searchTerm, setSearchTerm] = useState("");
+    const [sortOption, setSortOption] = useState("default");
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -54,52 +55,56 @@ const ProductList = () => {
                     <div class="row g-4">
                         <div class="col-lg-12">
                             <div class="row g-4">
-                                <div className="row mb-4">
-                                    <div className="col-12 d-flex justify-content-between align-items-center flex-wrap">
-                                        <h1 className="mb-0">All Products</h1>
-                                        <div className="input-group" style={{ maxWidth: '300px' }}>
-                                            <input
-                                                type="search"
-                                                className="form-control p-3"
-                                                placeholder="keywords"
-                                                aria-describedby="search-icon-1"
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
-                                            <span id="search-icon-1" className="input-group-text p-3">
-                                                <i className="fa fa-search"></i>
-                                            </span>
-                                        </div>
+                                <div className="col-lg-12 d-flex justify-content-between align-items-center flex-wrap">
+                                    <h1 className="mb-0">All Products</h1>
+                                    <div className="input-group" style={{ maxWidth: '300px' }}>
+                                        <input
+                                            type="search"
+                                            className="form-control p-3"
+                                            placeholder="keywords"
+                                            aria-describedby="search-icon-1"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                        <span id="search-icon-1" className="input-group-text p-3">
+                                            <i className="fa fa-search"></i>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="col-6"></div>
-                                <div class="col-xl-3">
-                                    <div class="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
-                                        <label for="fruits">Default Sorting:</label>
-                                        <select id="fruits" name="fruitlist" class="border-0 form-select-sm bg-light me-3" form="fruitform">
-                                            <option value="volvo">Nothing</option>
-                                            <option value="saab">Popularity</option>
-                                            <option value="opel">Organic</option>
-                                            <option value="audi">Fantastic</option>
-                                        </select>
-                                    </div>
-                                </div>
                             </div>
                             <div class="row g-4">
-                                {/* Products List Start */}
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm} />
+                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm}  sortOption={sortOption}/>
                                     </div>
                                 </div>
                                 {/* Products List End */}
 
                                 <div className="col-lg-3" style={{ maxWidth: '300px' }}>
                                     <div class="row g-4">
+                                        <div className="col-12 ms-auto">
+                                            <div class="bg-light ps-3 py-3 rounded d-flex justify-content-between align-items-center mb-4">
+                                                <label for="fruits">Sort By:</label>
+                                                <select form="fruitform"
+                                                    id="fruits"
+                                                    name="fruitlist"
+                                                    className="border-0 form-select-sm bg-light me-3"
+                                                    value={sortOption}
+                                                    onChange={(e) => setSortOption(e.target.value)}>
+                                                    <option value="default">Default</option>
+                                                    <option value="az">A-Z</option>
+                                                    <option value="za">Z-A</option>
+                                                    <option value="priceLowHigh">Price: Low to High</option>
+                                                    <option value="priceHighLow">Price: High to Low</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
                                         {/* CategoriesGroup */}
                                         <CategoriesGroup />
 
-                                        <div class="col-lg-12">
+                                        {/* <div class="col-lg-12">
                                             <div class="mb-3">
                                                 <h4>Additional</h4>
                                                 <div class="mb-2">
@@ -123,7 +128,7 @@ const ProductList = () => {
                                                     <label for="Categories-5"> Expired</label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                         <FeaturedProducts />
                                         {/* Banner */}
                                         <Banner />

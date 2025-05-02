@@ -1,10 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
 // import { useCart } from "../../../context/cartContext";
 
-const ProductListComponent = ({ selectedCountryId, searchTerm }) => {
+const ProductListComponent = ({ selectedCountryId, searchTerm, sortOption }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,18 +26,43 @@ const ProductListComponent = ({ selectedCountryId, searchTerm }) => {
 
         fetchProducts();
     }, [selectedCountryId]);
-
+    
+    const sortedProducts = useMemo(() => {
+        let sorted = [...products];
+      
+        const getLowestPrice = (product) => {
+          if (!product.prices || product.prices.length === 0) return 0;
+          return Math.min(...product.prices.map(p => parseFloat(p.price)));
+        };
+      
+        switch (sortOption) {
+          case "az":
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+          case "za":
+            sorted.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+          case "priceLowHigh":
+            sorted.sort((a, b) => getLowestPrice(a) - getLowestPrice(b));
+            break;
+          case "priceHighLow":
+            sorted.sort((a, b) => getLowestPrice(b) - getLowestPrice(a));
+            break;
+          default:
+            break;
+        }
+      
+        return sorted.filter((product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }, [products, sortOption, searchTerm]);
+      
     if (loading) return <p>Loading products...</p>;
     if (error) return <p>{error}</p>;
 
-    // ✅ Filter products using searchTerm
-    const filteredProducts = products.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
         <>
-            {filteredProducts.map((product) => (
+            {sortedProducts.map((product) => (
                 <div className="col-md-6 col-lg-6 col-xl-4" key={product._id}>
                     <div className="rounded position-relative fruite-item">
                         <div className="fruite-img">
