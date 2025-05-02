@@ -49,6 +49,10 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (product, selectedCountryId) => {
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
     try {
       console.log("Selected Product:", product); // Log selected product
 

@@ -27,7 +27,7 @@ const Cart = () => {
     return total + price * (Number(item.quantity) || 1); // Calculate total price for each item
   }, 0);
 
-  const shipping = cart.length ? 3 : 0;
+  const shipping = cart.length ? 33.90 : 0;
   const total = subtotal + shipping;
 
   const handleIncrease = (item) => {
