@@ -7,39 +7,43 @@ import ProductListComponent from "./order/productList";
 import FeaturedProducts from "./order/featuredProducts";
 import CategoriesGroup from "./order/categoriesGroup";
 import { useCountry } from "../../context/CountryContext";
+import Banner from "./order/banner";
 
-const ProductList = () =>{
+const ProductList = () => {
 
     const [loading, setLoading] = useState(true);
     const { selectedCountryId } = useCountry();
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-      const timer = setTimeout(() => {
-        setLoading(false); 
-      }, 100);
-  
-      return () => clearTimeout(timer);
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 100);
+
+        return () => clearTimeout(timer);
     }, []);
+
 
     return (
         <>
-             <Helmet>
-                <title>Products List | India Food Shop</title>                
+            <Helmet>
+                <title>Products List | India Food Shop</title>
                 <link href="/external-assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet" />
-                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />                
-                <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />                
+                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+                <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
+                <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
             {
-               loading? <Spinner /> : ''
+                loading ? <Spinner /> : ''
             }
-            
-            <SearchModel />     
+
+            <SearchModel />
 
             <div class="container-fluid page-header py-5">
                 <h1 class="text-center text-white display-6">Products</h1>
                 <ol class="breadcrumb justify-content-center mb-0">
-                    <li class="breadcrumb-item"><a href={'/'}>Home</a></li>                    
+                    <li class="breadcrumb-item"><a href={'/'}>Home</a></li>
                     <li class="breadcrumb-item active text-white">Products</li>
                 </ol>
             </div>
@@ -47,14 +51,25 @@ const ProductList = () =>{
 
             <div class="container-fluid fruite py-5">
                 <div class="container py-5">
-                    <h1 class="mb-4">All Products</h1>
                     <div class="row g-4">
                         <div class="col-lg-12">
                             <div class="row g-4">
-                                <div class="col-xl-3">
-                                    <div class="input-group w-100 mx-auto d-flex">
-                                        <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1" />
-                                        <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+                                <div className="row mb-4">
+                                    <div className="col-12 d-flex justify-content-between align-items-center flex-wrap">
+                                        <h1 className="mb-0">All Products</h1>
+                                        <div className="input-group" style={{ maxWidth: '300px' }}>
+                                            <input
+                                                type="search"
+                                                className="form-control p-3"
+                                                placeholder="keywords"
+                                                aria-describedby="search-icon-1"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            <span id="search-icon-1" className="input-group-text p-3">
+                                                <i className="fa fa-search"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-6"></div>
@@ -74,26 +89,16 @@ const ProductList = () =>{
                                 {/* Products List Start */}
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        <ProductListComponent selectedCountryId={selectedCountryId}/>
+                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm} />
                                     </div>
                                 </div>
                                 {/* Products List End */}
 
-                                <div class="col-lg-3">
+                                <div className="col-lg-3" style={{ maxWidth: '300px' }}>
                                     <div class="row g-4">
-                                        <div class="col-lg-12">
-                                            <div class="mb-3">
-                                                <h4>Categories</h4>
-                                                <CategoriesGroup/>
-                                            </div>
-                                        </div>
-                                        {/* <div class="col-lg-12">
-                                            <div class="mb-3">
-                                                <h4 class="mb-2">Price</h4>
-                                                <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value" />
-                                                <output id="amount" name="amount" min-velue="0" max-value="500" for="rangeInput">0</output>
-                                            </div>
-                                        </div> */}
+                                        {/* CategoriesGroup */}
+                                        <CategoriesGroup />
+
                                         <div class="col-lg-12">
                                             <div class="mb-3">
                                                 <h4>Additional</h4>
@@ -119,17 +124,11 @@ const ProductList = () =>{
                                                 </div>
                                             </div>
                                         </div>
-                                        <FeaturedProducts/>
-                                        <div class="col-lg-12">
-                                            <div class="position-relative">
-                                                <img src="img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="" />
-                                                <div class="position-absolute" style={{top: '50%', right: '10px', transform: 'translateY(-50%)'}}>
-                                                    <h3 class="text-secondary fw-bold">Fresh Banner</h3>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <FeaturedProducts />
+                                        {/* Banner */}
+                                        <Banner />
                                     </div>
-                                </div>                              
+                                </div>
                             </div>
                         </div>
                     </div>
