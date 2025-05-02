@@ -7,7 +7,8 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const user = JSON.parse(localStorage.getItem("user")); // Assuming you store user in localStorage
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
   useEffect(() => {
     if (user) {
       fetchCart();
@@ -15,27 +16,44 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   const fetchCart = async () => {
+    const now = Date.now();
+    if (isLoading || now - lastFetchTime < 1000) {
+      return;
+    }
+
     try {
+      setIsLoading(true);
+      setLastFetchTime(now);
+
       let res;
-      if (user) {
-        // Logged in
-        res = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}`);
-      } else {
-        // Not logged in
-        res = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/cart`);
+      if (user && user._id) {
+        res = await axios.get(
+          `https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (res.data && res.data.data) {
+          setCart(res.data.data);
+        }
       }
-      setCart(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch cart:", err);
+      setCart([]);
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  const addToCart = async (product,selectedCountryId) => {
+
+  const addToCart = async (product, selectedCountryId) => {
     try {
       console.log("Selected Product:", product); // Log selected product
-  
+
       const existingItem = cart.find((item) => item.product_id === product._id);
-  
+
       if (existingItem) {
         // If item exists, increase quantity
         await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${existingItem._id}`, {
@@ -55,18 +73,18 @@ export const CartProvider = ({ children }) => {
           product_category: product.category || "",
           product_description: product.description || "",
         };
-  
+
         console.log("Payload sending to Cart API:", payload);
-  
+
         await axios.post(`https://api.indiafoodshop.com/api/auth/v1/cart`, payload); // 👉 corrected URL
       }
-  
+
       fetchCart();
     } catch (err) {
       console.error("Failed to add to cart:", err.response?.data || err.message);
     }
   };
-  
+
 
   const updateCartItem = async (cartItemId, quantity) => {
     try {
@@ -98,7 +116,7 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to clear cart:", err);
     }
   };
-  
+
 
   return (
     <CartContext.Provider value={{ cart, setCart, addToCart, updateCartItem, removeFromCart, clearCart }}>

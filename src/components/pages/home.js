@@ -1,6 +1,5 @@
 import Copyright from "../include/copyright";
 import Footer from "../include/footer";
-import Header from "../include/header";
 import Spinner from "../include/spinner";
 import { Helmet } from "react-helmet";
 import { useEffect } from "react";
@@ -70,6 +69,35 @@ const Home = () => {
         setActiveTab(tabName);
     };
 
+    useEffect(() => {
+        // Initialize owl carousel
+        if (typeof window !== 'undefined') {
+            const $ = window.$;
+            $('.vegetable-carousel').owlCarousel({
+                loop: true,
+                margin: 10,
+                nav: true,
+                dots: false,
+                autoplay: true,
+                autoplayTimeout: 3000,
+                autoplayHoverPause: true,
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    576: {
+                        items: 2
+                    },
+                    768: {
+                        items: 3
+                    },
+                    992: {
+                        items: 4
+                    }
+                }
+            });
+        }
+    }, [products]);
     return (
         <>
             <Helmet>
@@ -78,6 +106,9 @@ const Home = () => {
                 <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
+                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+                <link href="/external-assets/lib/owlcarousel/assets/owl.theme.default.min.css" rel="stylesheet" />
+                <script src="/external-assets/lib/owlcarousel/owl.carousel.min.js"></script>
             </Helmet>
             {
                 loading ? <Spinner /> : ''
@@ -195,11 +226,17 @@ const Home = () => {
                                     {/* All Products tab */}
                                     <li className="nav-item">
                                         <button
-                                            className={`d-flex m-2 py-2 bg-light rounded-pill ${activeTab === 'All' ? 'active' : ''}`}
+                                            className={`d-flex m-2 py-2 rounded-pill ${activeTab === 'All' ? 'active bg-primary text-white' : 'bg-light text-dark'}`}
                                             onClick={() => handleTabClick('All')}
-                                            style={{ border: 'none', background: 'none' }}
+                                            style={{
+                                                border: 'none', transition: 'all 0.3s ease',
+                                                boxShadow: activeTab === 'All' ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'
+                                            }}
                                         >
-                                            <span className="text-dark" style={{ width: '130px' }}>All Products</span>
+                                            <span style={{
+                                                width: '130px',
+                                                color: activeTab === 'All' ? 'white' : 'inherit'
+                                            }}>All Products</span>
                                         </button>
                                     </li>
 
@@ -207,11 +244,23 @@ const Home = () => {
                                     {categories.map((category) => (
                                         <li key={category._id} className="nav-item">
                                             <button
-                                                className={`d-flex m-2 py-2 bg-light rounded-pill ${activeTab === category.name ? 'active' : ''}`}
+                                                className={`d-flex m-2 py-2 rounded-pill ${activeTab === category.name
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-light text-dark'
+                                                    }`}
                                                 onClick={() => handleTabClick(category.name)}
-                                                style={{ border: 'none', background: 'none' }}
+                                                style={{
+                                                    border: 'none',
+                                                    transition: 'all 0.3s ease',
+                                                    boxShadow: activeTab === category.name ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'
+                                                }}
                                             >
-                                                <span className="text-dark" style={{ width: '130px' }}>{category.name}</span>
+                                                <span style={{
+                                                    width: '130px',
+                                                    color: activeTab === category.name ? 'white' : 'inherit'
+                                                }}>
+                                                    {category.name}
+                                                </span>
                                             </button>
                                         </li>
                                     ))}
@@ -228,8 +277,14 @@ const Home = () => {
                                                 <p>Loading...</p>
                                             ) : error ? (
                                                 <p>{error}</p>
-                                            ) : filteredProducts.length > 0 && (
-                                                filteredProducts.map((product) => (
+                                            ) : filteredProducts.length === 0 ? (
+                                                <div className="col-12 text-start">
+                                                    <p className="fs-6" style={{ color: '#6c757d' }}>
+                                                        No Products in this category
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                filteredProducts.slice(0, 4).map((product) => (
                                                     <div key={product._id} className="col-md-6 col-lg-4 col-xl-3">
                                                         <div className="rounded position-relative fruite-item">
                                                             <div className="fruite-img" style={{ height: '250px', overflow: 'hidden' }}>
@@ -330,118 +385,42 @@ const Home = () => {
                 <div className="container py-5">
                     <h1 className="mb-0">Fresh Organic Vegetables</h1>
                     <div className="owl-carousel vegetable-carousel justify-content-center">
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-6.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                        {Array.isArray(products) && products
+                            .filter(product => product.category.toLowerCase() === 'vegetables')
+                            .slice(0, 8)
+                            .map((product) => (
+                                <div key={product._id} className="border border-primary rounded position-relative vesitable-item">
+                                    <div className="vesitable-img" style={{ height: '250px', overflow: 'hidden' }}>
+                                        <img
+                                            src={`https://api.indiafoodshop.com${product.image}`}
+                                            className="img-fluid w-100 h-100 rounded-top object-fit-cover"
+                                            alt={product.name}
+                                        />
+                                    </div>
+                                    <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>
+                                        {product.category}
+                                    </div>
+                                    <div className="p-4 rounded-bottom">
+                                        <h4>{product.name}</h4>
+                                        <p>{product.description}</p>
+                                        <div className="d-flex justify-content-between flex-lg-wrap">
+                                            <div>
+                                                {product.prices.map((item, idx) => (
+                                                    <p key={idx} className="text-dark fs-5 fw-bold mb-0">
+                                                        ₹{item.price} / {item.quantity}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                            <button
+                                                onClick={() => addToCart(product, selectedCountryId)}
+                                                className="btn border border-secondary rounded-pill px-3 text-primary"
+                                            >
+                                                <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-1.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-3.png" className="img-fluid w-100 rounded-top bg-light" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Banana</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-4.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Bell Papper</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-5.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Potatoes</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-6.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-5.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Potatoes</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border border-primary rounded position-relative vesitable-item">
-                            <div className="vesitable-img">
-                                <img src="img/vegetable-item-6.jpg" className="img-fluid w-100 rounded-top" alt="" />
-                            </div>
-                            <div className="text-white bg-primary px-3 py-1 rounded position-absolute" style={{ top: '10px', right: '10px' }}>Vegetable</div>
-                            <div className="p-4 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                                <div className="d-flex justify-content-between flex-lg-wrap">
-                                    <p className="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                    <a href="#" className="btn border border-secondary rounded-pill px-3 text-primary"><i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
+                            ))}
                     </div>
                 </div>
             </div>
