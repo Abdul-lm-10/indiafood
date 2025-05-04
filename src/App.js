@@ -25,6 +25,8 @@ import OrderPage from './components/pages/OrderPage';
 import About from './components/pages/aboutUs';
 import AboutProduct from './components/pages/AboutProduct';
 import OTP from './components/pages/user-auth/otp';
+import UserDetails from './components/pages/user-auth/dashboard/user-details';
+import OrderTracking from './components/pages/OrderTracking';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -63,6 +65,7 @@ function App() {
                 } />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/order" element={<OrderPage />} />
+                <Route path="/order-tracking" element={<OrderTracking />} />
                 <Route path="/aboutus" element={<About />} />
                 {/* <Route path="/product/:slug" element={<AboutProduct />} /> */}
                 <Route
@@ -70,6 +73,12 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <EditProfile />
+                    </ProtectedRoute>} />
+                <Route
+                  path="/dashboard/userprofile"
+                  element={
+                    <ProtectedRoute>
+                      <UserDetails />
                     </ProtectedRoute>} />
                 <Route path="/logout" element={<Logout />} />
                 <Route path="*" element={<NotFound />} />

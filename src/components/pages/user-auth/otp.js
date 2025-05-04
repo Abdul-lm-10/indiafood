@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
 
 const OTP = () => {
     const [otp, setOtp] = useState(['', '', '', '']);
@@ -91,17 +92,23 @@ const OTP = () => {
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
             </Helmet>
 
+            <div class="container-fluid page-header py-5">
+                <h1 class="text-center text-white display-6">OTP</h1>
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><Link to={'/'}>Home</Link></li>
+                    <li class="breadcrumb-item active text-white">OTP</li>
+                </ol>
+            </div>
+
             <div
                 className="container"
                 style={{
                     minHeight: '100vh',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
                 }}
             >
                 <div className="row w-100 justify-content-center">
-                    <div className="col-md-6 col-lg-4">
+                    <div className="col-md-6 col-lg-4 mt-4">
                         <div className="card shadow border-0" style={{ borderRadius: '20px' }}>
                             <div className="card-body p-5">
                                 <div className="text-center mb-5">
