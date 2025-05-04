@@ -73,15 +73,25 @@ const Checkout = () => {
         }
     };
 
+    const orderPayload = {
+        user_id: user._id,
+        location: formData.address + ", " + formData.townCity + ", " + formData.country,
+        items: cart.map(item => ({
+          cart_id: item._id,
+          product_id: item.product_id._id,
+          category_id: item.product_id.category_id, 
+          product_name: item.product_id.name,
+          quantity: item.quantity,
+          price: item.price,
+          pieces: item.pieces || 0
+        }))
+      };
+      
+
     const handlePlaceOrder = async () => {
         try {
-            const orderResponse = await axios.post('https://api.indiafoodshop.com/admin/create-order', {
-                user_id: user._id,
-                items: cart,
-                shipping_details: formData,
-                subtotal,
-                total
-            });
+            const orderResponse = await axios.post('https://api.indiafoodshop.com/admin/create-order', orderPayload);
+
             if (orderResponse.data && orderResponse.data.order_id && couponCode) {
                 await axios.post('https://api.indiafoodshop.com/admin/verify-coupon', {
                     coupon_code: couponCode.trim(),
@@ -97,6 +107,7 @@ const Checkout = () => {
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     const discountAmount = (subtotal * couponDiscount) / 100;
     const total = subtotal - discountAmount;
+
     return (
         <>
             <Helmet>
@@ -106,15 +117,21 @@ const Checkout = () => {
                 <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
             </Helmet>
-
+    
             {loading && <Spinner />}
             <SearchModel />
-
+    
             {/* Page Header Start */}
-            <div className="container-fluid page-header mb-5">
-                <div className="container">
-                    <h1 className="display-3 mb-3 animated slideInDown text-white">Checkout</h1>
-                    <nav aria-label="breadcrumb animated slideInDown">
+            <div className="container-fluid page-header mb-5 position-relative" style={{
+                background: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/external-assets/img/cart-page-header-img.png') center/cover no-repeat",
+                minHeight: "300px",
+                display: "flex",
+                alignItems: "center"
+            }}>
+                
+                <div className="container text-center">
+                    <h1 className="display-3 mb-3 text-white animated fadeInDown">Checkout</h1>
+                    <nav aria-label="breadcrumb" className="animated fadeInDown">
                         <ol className="breadcrumb justify-content-center text-uppercase mb-0">
                             <li className="breadcrumb-item"><a className="text-white" href="/">Home</a></li>
                             <li className="breadcrumb-item text-white active" aria-current="page">Checkout</li>
@@ -123,241 +140,168 @@ const Checkout = () => {
                 </div>
             </div>
             {/* Page Header End */}
-
+    
             {/* Checkout Page Start */}
             <div className="container py-5">
-                <h2 className="mb-4">Billing details</h2>
-                <div className="row">
+                <div className="row g-5">
+                    {/* Billing Details */}
                     <div className="col-lg-7">
-                        <form>
-                            <div className="row mb-3">
-                                <div className="col-md-6">
-                                    <label className="form-label">First Name*</label>
+                        <div className="bg-light p-4 rounded shadow-sm">
+                            <h2 className="mb-4 pb-3 border-bottom"><i className="fas fa-map-marker-alt me-2 text-primary"></i> Delivery Location</h2>
+                            
+                            <div className="row">
+                                <div className="col-md-6 mb-4">
+                                    <label className="form-label fw-bold">Town/City*</label>
                                     <input
                                         type="text"
-                                        className="form-control"
-                                        name="firstName"
-                                        value={formData.firstName}
+                                        className="form-control py-2"
+                                        name="townCity"
+                                        value={formData.townCity}
                                         onChange={handleInputChange}
+                                        required
+                                        style={{borderRadius: "8px"}}
                                     />
                                 </div>
-                                <div className="col-md-6">
-                                    <label className="form-label">Last Name*</label>
+                                <div className="col-md-6 mb-4">
+                                    <label className="form-label fw-bold">Country*</label>
                                     <input
                                         type="text"
-                                        className="form-control"
-                                        name="lastName"
-                                        value={formData.lastName}
+                                        className="form-control py-2"
+                                        name="country"
+                                        value={formData.country}
                                         onChange={handleInputChange}
+                                        required
+                                        style={{borderRadius: "8px"}}
                                     />
                                 </div>
                             </div>
-                            <div className="mb-3">
-                                <label className="form-label">Company Name*</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    name="companyName"
-                                    value={formData.companyName}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Address*</label>
-                                <input
-                                    type="text"
-                                    className="form-control mb-2"
-                                    placeholder="House Number Street Name"
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Town/City*</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    name="townCity"
-                                    value={formData.townCity}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Country*</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    name="country"
-                                    value={formData.country}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Postcode/ZIP*</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    name="postcode"
-                                    value={formData.postcode}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Mobile*</label>
-                                <input
-                                    type="tel"
-                                    className="form-control"
-                                    name="mobile"
-                                    value={formData.mobile}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Email Address*</label>
-                                <input
-                                    type="email"
-                                    className="form-control"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <div className="form-check">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        id="createAccount"
-                                        name="createAccount"
-                                        checked={formData.createAccount}
-                                        onChange={handleInputChange}
-                                    />
-                                    <label className="form-check-label" htmlFor="createAccount">
-                                        Create an account?
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <div className="form-check">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        id="differentAddress"
-                                        name="differentAddress"
-                                        checked={formData.differentAddress}
-                                        onChange={handleInputChange}
-                                    />
-                                    <label className="form-check-label" htmlFor="differentAddress">
-                                        Ship to a different address?
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Order Notes (Optional)</label>
+                            
+                            <div className="mb-4">
+                                <label className="form-label fw-bold">Delivery Instructions</label>
                                 <textarea
-                                    className="form-control"
-                                    rows="6"
-                                    name="orderNotes"
-                                    value={formData.orderNotes}
-                                    onChange={handleInputChange}
+                                    className="form-control py-2"
+                                    rows="3"
+                                    placeholder="Any special delivery instructions?"
+                                    style={{borderRadius: "8px"}}
                                 ></textarea>
                             </div>
-                        </form>
+                        </div>
                     </div>
-
+    
+                    {/* Order Summary */}
                     <div className="col-lg-5">
-                        <div className="table-responsive mb-4">
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>Products</th>
-                                        <th>Name</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {cart.map((item) => (
-                                        <tr key={item._id}>
-                                            <td>
-                                                <img
-                                                    src={`https://api.indiafoodshop.com${item.product_id.image}`}
-                                                    alt={item.product_id.name}
-                                                    style={{ width: '100px', height: 'auto' }}
-                                                    class="img-fluid"
-                                                />
-                                            </td>
-                                            <td>{item.product_id.name}</td>
-                                            <td>₹{item.price}</td>
-                                            <td>{item.quantity}</td>
-                                            <td>₹{item.price * item.quantity}</td>
+                        <div className="bg-light p-4 rounded shadow-sm sticky-top" style={{top: "20px"}}>
+                            <h2 className="mb-4 pb-3 border-bottom"><i className="fas fa-receipt me-2 text-primary"></i> Your Order</h2>
+                            
+                            <div className="table-responsive mb-4">
+                                <table className="table">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Total</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="p-4 bg-light mb-4">
-                            <h4 className="mb-3">Apply Coupon</h4>
-                            <form onSubmit={handleCouponSubmit} className="d-flex gap-2">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Enter coupon code"
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value)}
-                                />
-                                <button type="submit" className="btn btn-primary text-white">Apply</button>
-                            </form>
-                            {couponError && <div className="text-danger mt-2">{couponError}</div>}
-                            {couponDiscount > 0 && (
-                                <div className="text-success mt-2">Coupon applied! You saved ₹{couponDiscount}</div>
-                            )}
-                        </div>
-
-                        <div className="p-4 bg-light">
-                            <div className="d-flex justify-content-between mb-2">
-                                <span>Subtotal:</span>
-                                <span>₹{subtotal}</span>
+                                    </thead>
+                                    <tbody>
+                                        {cart.map((item) => (
+                                            <tr key={item._id}>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <img
+                                                            src={`https://api.indiafoodshop.com${item.product_id.image}`}
+                                                            alt={item.product_id.name}
+                                                            style={{ 
+                                                                width: '60px', 
+                                                                height: '60px',
+                                                                objectFit: 'cover',
+                                                                borderRadius: '8px',
+                                                                marginRight: '15px'
+                                                            }}
+                                                            className="img-fluid"
+                                                        />
+                                                        <div>
+                                                            <h6 className="mb-0">{item.product_id.name}</h6>
+                                                            <small className="text-muted">{item.quantity} × ₹{item.price}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="fw-bold">₹{item.price * item.quantity}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
-                            {couponDiscount > 0 && (
-                                <div className="d-flex justify-content-between mb-2 text-success">
-                                    <span>Coupon Discount ({couponDiscount}%):</span>
-                                    <span>-₹{discountAmount}</span>
-                                </div>
-                            )}
-                            <div className="d-flex justify-content-between mb-4 fw-bold">
-                                <span>Total:</span>
-                                <span>₹{total}</span>
-                            </div>
-                            <div className="p-4 bg-light">
-                                <h4 className="mb-4">Shipping</h4>
-                                <div className="form-check mb-2">
-                                    <input type="radio" className="form-check-input" name="shipping" id="free" />
-                                    <label className="form-check-label" htmlFor="free">Free Shipping</label>
-                                </div>
-                                <div className="form-check mb-2">
-                                    <input type="radio" className="form-check-input" name="shipping" id="flat" />
-                                    <label className="form-check-label" htmlFor="flat">Flat rate: ₹15.00</label>
-                                </div>
-                                <div className="form-check">
-                                    <input type="radio" className="form-check-input" name="shipping" id="local" />
-                                    <label className="form-check-label" htmlFor="local">Local Pickup: ₹8.00</label>
-                                </div>
-
-                                <div className="mt-4">
-                                    <h4 className="mb-3">Payment Method</h4>
-                                    <div className="form-check mb-2">
-                                        <input type="radio" className="form-check-input" name="payment" id="bank" />
-                                        <label className="form-check-label" htmlFor="bank">Direct Bank Transfer</label>
-                                        <div className="text-muted small mt-2">
-                                            Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
-                                        </div>
+    
+                            {/* Coupon Section */}
+                            <div className="p-3 mb-4 bg-white rounded">
+                                <h5 className="mb-3"><i className="fas fa-tag me-2 text-primary"></i> Apply Coupon</h5>
+                                <form onSubmit={handleCouponSubmit} className="d-flex gap-2">
+                                    <input
+                                        type="text"
+                                        className="form-control py-2"
+                                        placeholder="Enter coupon code"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value)}
+                                        style={{borderRadius: "8px"}}
+                                    />
+                                    <button 
+                                        type="submit" 
+                                        className="btn btn-primary text-white py-2 px-3"
+                                        style={{borderRadius: "8px"}}
+                                    >
+                                        Apply
+                                    </button>
+                                </form>
+                                {couponError && <div className="text-danger mt-2">{couponError}</div>}
+                                {couponDiscount > 0 && (
+                                    <div className="text-success mt-2">
+                                        <i className="fas fa-check-circle me-1"></i> Coupon applied! You saved ₹{discountAmount}
                                     </div>
+                                )}
+                            </div>
+    
+                            {/* Order Total */}
+                            <div className="p-3 bg-white rounded mb-4">
+                                <h5 className="mb-3"><i className="fas fa-calculator me-2 text-primary"></i> Order Summary</h5>
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>₹{subtotal}</span>
                                 </div>
-
-                                <button className="btn btn-primary w-100 mt-4 text-white">Place Order</button>
+                                {couponDiscount > 0 && (
+                                    <div className="d-flex justify-content-between mb-2 text-success">
+                                        <span>Coupon Discount:</span>
+                                        <span>-₹{discountAmount}</span>
+                                    </div>
+                                )}
+                                <div className="d-flex justify-content-between mb-3 pt-2 border-top">
+                                    <span className="fw-bold">Total:</span>
+                                    <span className="fw-bold text-primary">₹{total}</span>
+                                </div>
+                            </div>
+    
+                            {/* Payment Button */}
+                            <button 
+                                className="btn btn-primary w-100 py-3 fw-bold text-white"
+                                onClick={handlePlaceOrder}
+                                style={{
+                                    borderRadius: "8px",
+                                    fontSize: "1.1rem",
+                                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                                    transition: "all 0.3s"
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                            >
+                                <i className="fas fa-lock me-2"></i> Place Order Securely
+                            </button>
+                            
+                            <div className="text-center mt-3">
+                                <img 
+                                    src="/external-assets/img/payment-methods.png" 
+                                    alt="Payment Methods" 
+                                    className="img-fluid" 
+                                    style={{maxWidth: "250px", opacity: 0.7}}
+                                />
+                                <p className="text-muted small mt-2">Your personal data will be used to process your order and support your experience throughout this website.</p>
                             </div>
                         </div>
                     </div>

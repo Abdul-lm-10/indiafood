@@ -80,7 +80,7 @@ const FeaturedProducts = () => {
                     ))}
             <div className="d-flex justify-content-center my-4">
                 <a
-                    href="/all-products"
+                    href="/products"
                     className="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100"
                 >
                     View More

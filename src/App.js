@@ -64,7 +64,7 @@ function App() {
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/order" element={<OrderPage />} />
                 <Route path="/aboutus" element={<About />} />
-                {/* <Route path="/product/:slug" element={<AboutProduct />} /> */}
+                {/* <Route path="/product/:slug" element={<AboutProduct />} />  */}
                 <Route
                   path="/dashboard/my-profile"
                   element={

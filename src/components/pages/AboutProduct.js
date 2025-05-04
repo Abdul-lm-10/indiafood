@@ -10,7 +10,6 @@ import Spinner from '../include/spinner';
 import SearchModel from '../include/searchModel';
 
 const AboutProduct = () => {
-    const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedQuantity, setSelectedQuantity] = useState(1);
@@ -21,7 +20,7 @@ const AboutProduct = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get('https://api.indiafoodshop.com/admin/get-products/'+id); 
+                const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`); 
                 setProduct(response.data);
                 if (response.data.prices && response.data.prices.length > 0) {
                     setSelectedPrice(response.data.prices[0]);

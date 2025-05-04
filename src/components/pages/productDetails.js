@@ -41,8 +41,8 @@ const ProductDetails = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`);
-                if (response.data[0]) {
-                    setProductDetails(response.data[0]);
+                if (response.data) {
+                    setProductDetails(response.data);
                 } else {
                     setError('Product not found');
                 }
@@ -69,6 +69,7 @@ const ProductDetails = () => {
                 <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
+                <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
 
             <SearchModel />
@@ -88,40 +89,43 @@ const ProductDetails = () => {
                             <div className="row g-4">
                                 <div className="col-lg-6">
                                     <div className="rounded">
-                                        <img 
-                                            src={`https://api.indiafoodshop.com${productDetails.image}`} 
-                                            className="border img-fluid rounded" 
-                                            alt={productDetails.name} 
+                                        <img
+                                            src={`https://api.indiafoodshop.com${productDetails.image}`}
+                                            className="border img-fluid rounded"
+                                            alt={productDetails.name}
                                         />
                                     </div>
                                 </div>
                                 <div className="col-lg-6">
                                     <h4 className="fw-bold mb-3">{productDetails.name}</h4>
                                     <p className="mb-3">Category: {productDetails.category}</p>
-                                    
-                                    {productDetails.prices && productDetails.prices.map((price, index) => (
-                                        <div key={index} className="mb-2">
-                                            <h5 className="fw-bold">₹{price.price} / {price.quantity}</h5>
-                                        </div>
-                                    ))}
+
+                                    {productDetails.prices &&
+                                        productDetails.prices
+                                            .filter(price => price.country_id === selectedCountryId)
+                                            .map((price, index) => (
+                                                <div key={index} className="mb-2">
+                                                    <h5 className="fw-bold">₹{price.price} / {price.quantity}</h5>
+                                                </div>
+                                            ))}
 
                                     <div className="input-group quantity mb-5" style={{ width: '100px' }}>
                                         <div className="input-group-btn">
-                                            <button 
+                                            <button
                                                 className="btn btn-sm btn-minus rounded-circle bg-light border"
                                                 onClick={() => handleQuantityChange('minus')}
                                             >
                                                 <i className="fa fa-minus"></i>
                                             </button>
                                         </div>
-                                        <input 
-                                            type="text" 
-                                            className="form-control form-control-sm text-center border-0" 
+                                        <input
+                                            type="text"
+                                            className="form-control form-control-sm text-center border-0"
                                             value={quantity}
-                                            readOnly 
+                                            readOnly
                                         />
                                         <div className="input-group-btn">
-                                            <button 
+                                            <button
                                                 className="btn btn-sm btn-plus rounded-circle bg-light border"
                                                 onClick={() => handleQuantityChange('plus')}
                                             >
@@ -130,7 +134,7 @@ const ProductDetails = () => {
                                         </div>
                                     </div>
 
-                                    <button 
+                                    <button
                                         className="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary"
                                         onClick={handleAddToCart}
                                     >
@@ -141,13 +145,13 @@ const ProductDetails = () => {
                                 <div className="col-lg-12">
                                     <nav>
                                         <div className="nav nav-tabs mb-3">
-                                            <button 
+                                            <button
                                                 className={`nav-link ${activeTab === 'description' ? 'active' : ''} border-white border-bottom-0`}
                                                 onClick={() => setActiveTab('description')}
                                             >
                                                 Description
                                             </button>
-                                            <button 
+                                            <button
                                                 className={`nav-link ${activeTab === 'reviews' ? 'active' : ''} border-white border-bottom-0`}
                                                 onClick={() => setActiveTab('reviews')}
                                             >
@@ -163,7 +167,7 @@ const ProductDetails = () => {
                                                 {/* Product specifications */}
                                             </div>
                                         )}
-                                        
+
                                         {activeTab === 'reviews' && (
                                             <div className="tab-pane active">
                                                 <Reviews />
@@ -183,12 +187,10 @@ const ProductDetails = () => {
                             <div className="row g-4 fruite">
                                 <div className="col-lg-12">
                                     <div className="mb-4">
-                                        <h4>Categories</h4>
                                         <CategoriesGroup />
                                     </div>
                                 </div>
                                 <div className="col-lg-12">
-                                    <h4 className="mb-4">Featured products</h4>
                                     <FeaturedProducts />
                                 </div>
                             </div>
