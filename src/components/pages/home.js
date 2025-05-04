@@ -18,6 +18,7 @@ const Home = () => {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
     const { selectedCountryId } = useCountry();
+    const [cartItems, setCartItems] = useState({});
     const filteredProducts = activeTab === 'All'
         ? products
         : products.filter(product => product.category === activeTab);
@@ -119,6 +120,7 @@ const Home = () => {
 
     const fruitCategoryId = fruitsProducts[0]?.category_id;
 
+    
     return (
         <>
             <Helmet>
@@ -320,7 +322,11 @@ const Home = () => {
                                                             </div>
                                                             <div className="p-4 border border-secondary border-top-0 rounded-bottom">
                                                                 <h4>{product.name.trim()}</h4>
-                                                                <p>{product.description.trim()}</p>
+                                                                <p className="text-muted mb-3">
+                                                                    {product.description.length > 50
+                                                                        ? `${product.description.trim().substring(0, 50)}...`
+                                                                        : product.description.trim()}
+                                                                </p>
                                                                 <div className="d-flex justify-content-between flex-lg-wrap">
                                                                     <div>
                                                                         {product.prices.map((item, idx) => (
@@ -427,7 +433,9 @@ const Home = () => {
                                             </div>
                                             <div className="p-4 border border-secondary border-top-0 rounded-bottom">
                                                 <h4>{product.name.trim()}</h4>
-                                                <p>{product.description.trim()}</p>
+                                                <p>{product.description.length > 50
+                                                    ? `${product.description.trim().substring(0, 50)}...`
+                                                    : product.description.trim()}</p>
                                                 <div className="d-flex justify-content-between flex-lg-wrap">
                                                     <div>
                                                         {product.prices.map((item, idx) => (

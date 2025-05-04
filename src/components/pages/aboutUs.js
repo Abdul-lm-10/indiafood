@@ -2,6 +2,7 @@ import React from 'react';
 import { Helmet } from "react-helmet";
 import img from "../../external-assets/img/download.jpeg"
 import Footer from '../include/footer';
+import { Link } from 'react-router-dom';
 const About = () => {
     return (
         <>
@@ -14,18 +15,13 @@ const About = () => {
             </Helmet>
 
             {/* Page Header Start */}
-            <div className="container-fluid page-header py-3 py-lg-5">
-                <div className="container text-center py-3 py-lg-5">
-                    <h1 className="display-2 text-white mb-3 mb-md-4" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>About Us</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol className="breadcrumb justify-content-center mb-0">
-                            <li className="breadcrumb-item"><a href="/">Home</a></li>
-                            <li className="breadcrumb-item active" aria-current="page">About</li>
-                        </ol>
-                    </nav>
-                </div>
+            <div class="container-fluid page-header py-5">
+                <h1 class="text-center text-white display-6">About Us</h1>
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><Link to={'/'}>Home</Link></li>
+                    <li class="breadcrumb-item active text-white">About</li>
+                </ol>
             </div>
-
             {/* About Start */}
             <div className="container-fluid py-3 py-lg-5">
                 <div className="container">

@@ -19,7 +19,7 @@ const LoginOrAvatar = ()=>{
                         </a>
                         <div className="dropdown-menu m-0 bg-secondary rounded-0">
                             <Link to={'/dashboard/my-profile'} className="dropdown-item">Edit Profile</ Link>
-                            <Link to={'/orders'} className="dropdown-item">Orders</Link>
+                            <Link to={'/order'} className="dropdown-item">Orders</Link>
                             <Link to={'/order-tracking'} className="dropdown-item">Order Tracking</Link>
                             <Link to={"/logout"} className="dropdown-item">Logout</Link>
                         </div>
