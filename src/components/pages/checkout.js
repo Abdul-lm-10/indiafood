@@ -4,12 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import SearchModel from '../include/searchModel';
 import Spinner from '../include/spinner';
 import { Helmet } from 'react-helmet';
+import axios from 'axios';
 
 const Checkout = () => {
     const { cart } = useCart();
     const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [couponCode, setCouponCode] = useState('');
+    const [couponDiscount, setCouponDiscount] = useState(0);
+    const [couponError, setCouponError] = useState('');
+    const [orderId, setOrderId] = useState('');
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -38,7 +43,60 @@ const Checkout = () => {
             setLoading(false);
         }, 1500);
     }, []);
+    const handleCouponSubmit = async (e) => {
+        e.preventDefault();
+        if (!couponCode.trim()) {
+            setCouponError('Please enter a coupon code');
+            return;
+        }
+        if (!user || !user._id) {
+            setCouponError('Please login to apply coupon');
+            return;
+        }
+        try {
+            const validateResponse = await axios.post('https://api.indiafoodshop.com/admin/verify-coupon', {
+                coupon_code: couponCode.trim(),
+                user_id: user._id
+            });
+            if (validateResponse.data && validateResponse.data.data) {
+                const couponData = validateResponse.data.data;
+                setCouponDiscount(couponData.discount_percentage);
+                setCouponError('');
+            } else {
+                setCouponError(validateResponse.data.message || 'Invalid coupon code');
+                setCouponDiscount(0);
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Error validating coupon';
+            setCouponError(errorMessage);
+            setCouponDiscount(0);
+        }
+    };
 
+    const handlePlaceOrder = async () => {
+        try {
+            const orderResponse = await axios.post('https://api.indiafoodshop.com/admin/create-order', {
+                user_id: user._id,
+                items: cart,
+                shipping_details: formData,
+                subtotal,
+                total
+            });
+            if (orderResponse.data && orderResponse.data.order_id && couponCode) {
+                await axios.post('https://api.indiafoodshop.com/admin/verify-coupon', {
+                    coupon_code: couponCode.trim(),
+                    user_id: user._id,
+                    order_id: orderResponse.data.order_id
+                });
+            }
+            navigate('/order');
+        } catch (error) {
+            console.error('Order creation failed:', error);
+        }
+    };
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const discountAmount = (subtotal * couponDiscount) / 100;
+    const total = subtotal - discountAmount;
     return (
         <>
             <Helmet>
@@ -240,34 +298,67 @@ const Checkout = () => {
                                 </tbody>
                             </table>
                         </div>
+                        <div className="p-4 bg-light mb-4">
+                            <h4 className="mb-3">Apply Coupon</h4>
+                            <form onSubmit={handleCouponSubmit} className="d-flex gap-2">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Enter coupon code"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                />
+                                <button type="submit" className="btn btn-primary text-white">Apply</button>
+                            </form>
+                            {couponError && <div className="text-danger mt-2">{couponError}</div>}
+                            {couponDiscount > 0 && (
+                                <div className="text-success mt-2">Coupon applied! You saved ₹{couponDiscount}</div>
+                            )}
+                        </div>
 
                         <div className="p-4 bg-light">
-                            <h4 className="mb-4">Shipping</h4>
-                            <div className="form-check mb-2">
-                                <input type="radio" className="form-check-input" name="shipping" id="free" />
-                                <label className="form-check-label" htmlFor="free">Free Shipping</label>
+                            <div className="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>₹{subtotal}</span>
                             </div>
-                            <div className="form-check mb-2">
-                                <input type="radio" className="form-check-input" name="shipping" id="flat" />
-                                <label className="form-check-label" htmlFor="flat">Flat rate: ₹15.00</label>
+                            {couponDiscount > 0 && (
+                                <div className="d-flex justify-content-between mb-2 text-success">
+                                    <span>Coupon Discount ({couponDiscount}%):</span>
+                                    <span>-₹{discountAmount}</span>
+                                </div>
+                            )}
+                            <div className="d-flex justify-content-between mb-4 fw-bold">
+                                <span>Total:</span>
+                                <span>₹{total}</span>
                             </div>
-                            <div className="form-check">
-                                <input type="radio" className="form-check-input" name="shipping" id="local" />
-                                <label className="form-check-label" htmlFor="local">Local Pickup: ₹8.00</label>
-                            </div>
-
-                            <div className="mt-4">
-                                <h4 className="mb-3">Payment Method</h4>
+                            <div className="p-4 bg-light">
+                                <h4 className="mb-4">Shipping</h4>
                                 <div className="form-check mb-2">
-                                    <input type="radio" className="form-check-input" name="payment" id="bank" />
-                                    <label className="form-check-label" htmlFor="bank">Direct Bank Transfer</label>
-                                    <div className="text-muted small mt-2">
-                                        Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
+                                    <input type="radio" className="form-check-input" name="shipping" id="free" />
+                                    <label className="form-check-label" htmlFor="free">Free Shipping</label>
+                                </div>
+                                <div className="form-check mb-2">
+                                    <input type="radio" className="form-check-input" name="shipping" id="flat" />
+                                    <label className="form-check-label" htmlFor="flat">Flat rate: ₹15.00</label>
+                                </div>
+                                <div className="form-check">
+                                    <input type="radio" className="form-check-input" name="shipping" id="local" />
+                                    <label className="form-check-label" htmlFor="local">Local Pickup: ₹8.00</label>
+                                </div>
+
+                                <div className="mt-4">
+                                    <h4 className="mb-3">Payment Method</h4>
+                                    <div className="form-check mb-2">
+                                        <input type="radio" className="form-check-input" name="payment" id="bank" />
+                                        <label className="form-check-label" htmlFor="bank">Direct Bank Transfer</label>
+                                        <div className="text-muted small mt-2">
+                                            Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <button className="btn btn-primary w-100 mt-4 text-white">Place Order</button>
+                                <button className="btn btn-primary w-100 mt-4 text-white">Place Order</button>
+                            </div>
                         </div>
                     </div>
                 </div>

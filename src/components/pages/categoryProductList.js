@@ -70,7 +70,7 @@ const CategoryProductList = () =>{
 
             <div class="container-fluid fruite py-5">
                 <div class="container py-5">
-                    <h1 class="mb-4">All Products</h1>
+                    <h1 class="mb-4">All Hell Products</h1>
                     <div class="row g-4">
                         <div class="col-lg-12">
                             <div class="row g-4">

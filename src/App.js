@@ -23,7 +23,8 @@ import Header from './components/include/header';
 import { CountryProvider } from './context/CountryContext';
 import OrderPage from './components/pages/OrderPage';
 import About from './components/pages/aboutUs';
-// import AboutProduct from './components/pages/AboutProduct';
+import AboutProduct from './components/pages/AboutProduct';
+import OTP from './components/pages/user-auth/otp';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/otp" element={<OTP />} />
 
                 <Route path="/checkout" element={
                   <ProtectedRoute>

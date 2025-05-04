@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Helmet } from 'react-helmet';
 import { useCart } from '../../context/CartContext';
 import { useCountry } from '../../context/CountryContext';
+import Header from '../include/header';
 import Footer from '../include/footer';
 import Spinner from '../include/spinner';
 import SearchModel from '../include/searchModel';
@@ -20,7 +21,7 @@ const AboutProduct = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`);
+                const response = await axios.get('https://api.indiafoodshop.com/admin/get-products/'+id); 
                 setProduct(response.data);
                 if (response.data.prices && response.data.prices.length > 0) {
                     setSelectedPrice(response.data.prices[0]);
@@ -60,11 +61,13 @@ const AboutProduct = () => {
         <>
             <Helmet>
                 <title>{product.name} | India Food Shop</title>
-                <link href="/external-assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet" />
-                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+                {/* Update CSS import order */}
                 <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
+                <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+                <link href="/external-assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
             </Helmet>
+
             {loading ? <Spinner /> : ""}
             <SearchModel />
 
