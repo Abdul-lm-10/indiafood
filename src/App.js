@@ -23,6 +23,7 @@ import Header from './components/include/header';
 import { CountryProvider } from './context/CountryContext';
 import OrderPage from './components/pages/OrderPage';
 import About from './components/pages/aboutUs';
+// import AboutProduct from './components/pages/AboutProduct';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/order" element={<OrderPage />} />
                 <Route path="/aboutus" element={<About />} />
+                {/* <Route path="/product/:slug" element={<AboutProduct />} /> */}
                 <Route
                   path="/dashboard/my-profile"
                   element={
