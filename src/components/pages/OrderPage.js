@@ -94,7 +94,7 @@ const OrderPage = () => {
                                                     <th>Payment</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            {/* <tbody>
                                                 {orders.map((order) => (
                                                     <tr key={order._id}>
                                                         <td>#{order._id.slice(-6)}</td>
@@ -120,6 +120,36 @@ const OrderPage = () => {
                                                         </td>
                                                     </tr>
                                                 ))}
+                                            </tbody> */}
+
+
+                                            <tbody>
+                                                {orders.map(order =>
+                                                    order.items.map((item, index) => (
+                                                        <tr key={`${order._id}-${index}`}>
+                                                            <td>#{order.order_no}</td>
+                                                            <td>{order.date_time}</td>
+                                                            <td>{item.product_name}</td>
+                                                            <td>{item.quantity} ({item.pieces} pieces)</td>
+                                                            <td>₹{item.price}</td>
+                                                            <td>
+                                                                <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
+                                                                        order.order_status === 'Processing' ? 'bg-info' :
+                                                                            order.order_status === 'Shipped' ? 'bg-primary' :
+                                                                                order.order_status === 'Delivered' ? 'bg-success' :
+                                                                                    'bg-secondary'
+                                                                    }`}>
+                                                                    {order.order_status}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
+                                                                    {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
                                             </tbody>
                                         </table>
                                         {orders.length === 0 && (

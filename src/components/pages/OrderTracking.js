@@ -51,7 +51,7 @@ const OrderTracking = () => {
                         <div className="card shadow-sm border-0 rounded-3">
                             <div className="card-body p-4">
                                 <h4 className="mb-4 text-center text-md-start">Track Orders by Status</h4>
-                                
+
                                 {/* Responsive status buttons */}
                                 <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start mb-4">
                                     {['Pending', 'Processing', 'Shipped', 'Delivered'].map(status => (
@@ -73,35 +73,42 @@ const OrderTracking = () => {
                                                 <th>Order ID</th>
                                                 <th>Date</th>
                                                 <th>Product</th>
+                                                <th>Quantity</th>
                                                 <th>Location</th>
                                                 <th>Status</th>
                                                 <th>Payment</th>
                                             </tr>
                                         </thead>
+
                                         <tbody>
-                                            {trackingOrders.map((order) => (
-                                                <tr key={order._id}>
-                                                    <td>#{order._id.slice(-6)}</td>
-                                                    <td>{order.date_time}</td>
-                                                    <td>{order.product_name}</td>
-                                                    <td>{order.location}</td>
-                                                    <td>
-                                                        <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
-                                                            order.order_status === 'Processing' ? 'bg-info' :
-                                                            order.order_status === 'Shipped' ? 'bg-primary' :
-                                                            order.order_status === 'Delivered' ? 'bg-success' :
-                                                            'bg-secondary'}`}>
-                                                            {order.order_status}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
-                                                            {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {trackingOrders.map(order =>
+                                                order.items.map((item, index) => (
+                                                    <tr key={`${order._id}-${index}`}>
+                                                        <td>#{order._id.slice(-6)}</td>
+                                                        <td>{order.date_time}</td>
+                                                        <td>{item.product_name}</td>
+                                                        <td>{order.quantity}</td>
+                                                        <td>{order.location}</td>
+                                                        <td>
+                                                            <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
+                                                                order.order_status === 'Processing' ? 'bg-info' :
+                                                                    order.order_status === 'Shipped' ? 'bg-primary' :
+                                                                        order.order_status === 'Delivered' ? 'bg-success' :
+                                                                            'bg-secondary'
+                                                                }`}>
+                                                                {order.order_status}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
+                                                                {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
                                         </tbody>
+
                                     </table>
                                 </div>
 
@@ -114,9 +121,9 @@ const OrderTracking = () => {
                                                     <h6 className="mb-0">#{order._id.slice(-6)}</h6>
                                                     <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
                                                         order.order_status === 'Processing' ? 'bg-info' :
-                                                        order.order_status === 'Shipped' ? 'bg-primary' :
-                                                        order.order_status === 'Delivered' ? 'bg-success' :
-                                                        'bg-secondary'}`}>
+                                                            order.order_status === 'Shipped' ? 'bg-primary' :
+                                                                order.order_status === 'Delivered' ? 'bg-success' :
+                                                                    'bg-secondary'}`}>
                                                         {order.order_status}
                                                     </span>
                                                 </div>
