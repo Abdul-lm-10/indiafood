@@ -5,10 +5,13 @@ const CountryContext = createContext();
 
 // Create a provider component
 export const CountryProvider = ({ children }) => {
-  const [selectedCountryId, setSelectedCountryId] = useState("67f5728b4722503b112dbd2b");
+  const [selectedCountryId, setSelectedCountryId] = useState(() => {
+    return sessionStorage.getItem('selectedCountryId') || "67f5728b4722503b112dbd2b";
+  });
 
   const handleCountryChange = (countryId) => {
     setSelectedCountryId(countryId);
+    sessionStorage.setItem('selectedCountryId', countryId);
   };
 
   return (

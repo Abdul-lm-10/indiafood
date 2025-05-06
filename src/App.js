@@ -37,8 +37,8 @@ function App() {
   return (
     <>
       <AuthProvider>
-        <CartProvider>
-          <CountryProvider>
+        <CountryProvider>
+          <CartProvider>
             <Router>
               <ScrollManager />
               <Header />
@@ -84,8 +84,8 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
-          </CountryProvider>
-        </CartProvider>
+          </CartProvider>
+        </CountryProvider>
       </AuthProvider>
     </>
   );

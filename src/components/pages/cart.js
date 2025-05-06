@@ -175,10 +175,10 @@ const Cart = () => {
                               // onClick={() => navigate(`/product-details/${product.slug}`)}
                               style={{ cursor: 'pointer' }}
                             >
-                              <div className="fruite-img position-relative overflow-hidden">
+                              <div className="fruite-img position-relative overflow-hidden"  style={{ height: '250px'}}>
                                 <img
                                   src={`https://api.indiafoodshop.com${product.image}`}
-                                  className="img-fluid w-100 rounded-top"
+                                  className="img-fluid w-100 h-100 rounded-top"
                                   alt={product.name}
                                 />
                                 <div className="text-white bg-secondary px-3 py-1 rounded position-absolute"
@@ -188,7 +188,9 @@ const Cart = () => {
                               </div>
                               <div className="p-4 border border-secondary border-top-0 rounded-bottom d-flex flex-column h-100">
                                 <h4 className="mb-3">{product.name}</h4>
-                                <p className="mb-4 flex-grow-1">{product.description}</p>
+                                <p className="mb-4 flex-grow-1">{product.description.length > 50
+                                  ? `${product.description.trim().substring(0, 50)}...`
+                                  : product.description.trim()}</p>
                                 <div className="d-flex justify-content-between align-items-center">
                                   <div className="text-dark mb-0">
                                     {product.prices && product.prices.map((price, idx) => (

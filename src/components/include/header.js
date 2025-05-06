@@ -1,7 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import Cart from "./cart";
 import LoginOrAvatar from "./loginOrAvatar";
-import { useState } from "react";
 import Flag from "react-world-flags";
 import { useCountry } from "../../context/CountryContext"; // Import the context hook
 
