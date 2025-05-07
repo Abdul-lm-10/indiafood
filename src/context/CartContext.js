@@ -1,6 +1,7 @@
 // context/CartContext.js
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useCountry } from "./CountryContext";
 
 export const CartContext = createContext();
 
@@ -9,11 +10,13 @@ export const CartProvider = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user")); // Assuming you store user in localStorage
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(0);
+  const countryContext = useCountry();
+  const selectedCountryId = countryContext?.selectedCountryId || sessionStorage.getItem('selectedCountryId') || "67f5728b4722503b112dbd2b";
   useEffect(() => {
     if (user) {
       fetchCart();
     }
-  }, [user]);
+  }, [user, selectedCountryId]);
 
   const fetchCart = async () => {
     const now = Date.now();
@@ -28,7 +31,7 @@ export const CartProvider = ({ children }) => {
       let res;
       if (user && user._id) {
         res = await axios.get(
-          `https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}`,
+          `https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}?country_id=${selectedCountryId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -62,6 +65,7 @@ export const CartProvider = ({ children }) => {
         // If item exists, increase quantity
         await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${existingItem._id}`, {
           quantity: existingItem.quantity + 1,
+          country_id: selectedCountryId
         });
       } else {
         const payload = {
@@ -92,7 +96,10 @@ export const CartProvider = ({ children }) => {
 
   const updateCartItem = async (cartItemId, quantity) => {
     try {
-      await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${cartItemId}`, { quantity });
+      await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${cartItemId}`, {
+        quantity,
+        country_id: selectedCountryId
+      });
       fetchCart();
     } catch (err) {
       console.error("Failed to update cart:", err);
