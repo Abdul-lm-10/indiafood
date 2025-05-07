@@ -6,17 +6,20 @@ import { useCountry } from "./CountryContext";
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
-  const user = JSON.parse(localStorage.getItem("user")); // Assuming you store user in localStorage
+  const [cart, setCart] = useState([]); 
+  const user = JSON.parse(localStorage.getItem("user"));
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(0);
   const countryContext = useCountry();
   const selectedCountryId = countryContext?.selectedCountryId || sessionStorage.getItem('selectedCountryId') || "67f5728b4722503b112dbd2b";
+
+
   useEffect(() => {
     if (user) {
       fetchCart();
     }
   }, [user, selectedCountryId]);
+
 
   const fetchCart = async () => {
     const now = Date.now();
@@ -30,14 +33,13 @@ export const CartProvider = ({ children }) => {
 
       let res;
       if (user && user._id) {
-        res = await axios.get(
-          `https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}?country_id=${selectedCountryId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
+        res = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}?country_id=${selectedCountryId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
-        );
+        });
+
+
 
         if (res.data && res.data.data) {
           setCart(res.data.data);
@@ -51,42 +53,38 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (product, selectedCountryId) => {
+
+
+  const addToCart = async (product, selectedCountryId, selectedPriceIndex = 0, quantity = 1) => {
     if (!user) {
-      window.location.href = '/login';
+      const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      guestCart.push({ product, selectedPriceIndex, quantity, selectedCountryId });
+      localStorage.setItem("guestCart", JSON.stringify(guestCart));
+      //window.location.href = '/login';
       return;
     }
+
     try {
-      console.log("Selected Product:", product); // Log selected product
+      const selectedPrice = Array.isArray(product.prices) && product.prices.length > selectedPriceIndex
+        ? product.prices[selectedPriceIndex]
+        : product.prices?.[0] ?? { price: 0, quantity: 1 };
 
-      const existingItem = cart.find((item) => item.product_id === product._id);
+      const payload = {
+        product_id: product._id || product.product_id,
+        user_id: user._id,
+        quantity: selectedPrice.quantity,
+        price: selectedPrice.price,
+        country_id: selectedCountryId,
+        pieces: quantity,
+        product_name: product.name || "",
+        product_image: product.image || "",
+        product_category: product.category || "",
+        product_description: product.description || "",
+        admin: product.admin || user.admin || false,
+        date_time: new Date().toISOString(),
+      };
 
-      if (existingItem) {
-        // If item exists, increase quantity
-        await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${existingItem._id}`, {
-          quantity: existingItem.quantity + 1,
-          country_id: selectedCountryId
-        });
-      } else {
-        const payload = {
-          product_id: product._id,
-          user_id: user._id,
-          quantity: 1,
-          price: product.prices?.[0]?.price ?? product.price ?? 1,
-          country_id: selectedCountryId,
-          pieces: product.pieces || 1,
-          admin: product.admin || user.admin || false,
-          product_name: product.name || "",
-          product_image: product.image || "",
-          product_category: product.category || "",
-          product_description: product.description || "",
-        };
-
-        console.log("Payload sending to Cart API:", payload);
-
-        await axios.post(`https://api.indiafoodshop.com/api/auth/v1/cart`, payload); // 👉 corrected URL
-      }
-
+      await axios.post(`https://api.indiafoodshop.com/api/auth/v1/cart`, payload);
       fetchCart();
     } catch (err) {
       console.error("Failed to add to cart:", err.response?.data || err.message);
@@ -94,10 +92,10 @@ export const CartProvider = ({ children }) => {
   };
 
 
-  const updateCartItem = async (cartItemId, quantity) => {
+  const updateCartItem = async (cartItemId, pieces) => {
     try {
       await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${cartItemId}`, {
-        quantity,
+        pieces,
         country_id: selectedCountryId
       });
       fetchCart();

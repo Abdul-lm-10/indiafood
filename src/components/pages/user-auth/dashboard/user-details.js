@@ -12,6 +12,12 @@ const UserDetails = () => {
 
     useEffect(() => {
         fetchUserDetails();
+        const hasReloaded = sessionStorage.getItem('hasReloaded');
+
+        if (!hasReloaded) {
+            sessionStorage.setItem('hasReloaded', 'true');
+            window.location.reload();
+        }
     }, []);
 
     const fetchUserDetails = async () => {

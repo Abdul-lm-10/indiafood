@@ -104,7 +104,7 @@ const Checkout = () => {
             console.error('Order creation failed:', error);
         }
     };
-    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces), 0);
     const discountAmount = (subtotal * couponDiscount) / 100;
     const total = subtotal - discountAmount;
 
@@ -224,7 +224,7 @@ const Checkout = () => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="fw-bold">₹{item.price * item.quantity}</td>
+                                                <td className="fw-bold">₹{item.price * item.pieces}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -296,7 +296,7 @@ const Checkout = () => {
                             
                             <div className="text-center mt-3">
                                 <img 
-                                    src="/external-assets/img/payment-methods.png" 
+                                    src="/external-assets/img/payment.png" 
                                     alt="Payment Methods" 
                                     className="img-fluid" 
                                     style={{maxWidth: "250px", opacity: 0.7}}

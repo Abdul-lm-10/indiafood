@@ -8,7 +8,7 @@ const CategoriesGroup = () => {
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
@@ -34,7 +34,7 @@ const CategoriesGroup = () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
+                    const res = await fetch(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
                 const data = await res.json();
                 console.log("Fetched Products:", data);
                 setProducts(data);

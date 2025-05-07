@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true); // To handle async loading state
-  // console.log(user);
+
   
   // Fetch user details when token is present
   useEffect(() => {
@@ -33,16 +33,18 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   // Login function to store token and user
-  const login = (token, user) => {
+  const login = async (token, user) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setToken(token);
-    setUser(user);
+    setUser(user); 
   };
 
   // Logout function to clear token and user data
   const logout = () => {
+    localStorage.clear();
     localStorage.removeItem('token');
+    sessionStorage.removeItem('hasReloaded');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);

@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
-// import { useCart } from "../../../context/cartContext";
 
-const ProductListComponent = ({ selectedCountryId, searchTerm, sortOption }) => {
+
+const ProductListComponent = ({ selectedCountryId,currencySymbol, searchTerm, sortOption }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -83,7 +83,7 @@ const ProductListComponent = ({ selectedCountryId, searchTerm, sortOption }) => 
                                 <div className="text-dark fs-5 fw-bold mb-0">
                                     {product.prices && product.prices.map((item, idx) => (
                                         <div key={idx} className="text-dark fs-6 mb-1">
-                                            ₹{item.price} / {item.quantity}
+                                            {currencySymbol}{item.price} / {item.quantity}
                                         </div>
                                     ))}
                                 </div>

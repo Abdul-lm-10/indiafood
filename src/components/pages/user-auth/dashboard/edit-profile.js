@@ -21,6 +21,13 @@ const EditProfile = () => {
 
     useEffect(() => {
         fetchUserDetails();
+        const hasReloaded = sessionStorage.getItem('hasReloaded');
+
+        if (!hasReloaded) {
+            sessionStorage.setItem('hasReloaded', 'true');
+            window.location.reload();
+        }
+
     }, []);
 
     const fetchUserDetails = async () => {
@@ -32,7 +39,7 @@ const EditProfile = () => {
             });
             setUser(response.data);
             console.log(response.data);
-            
+
             setFormData({
                 name: response.data.name || '',
                 email: response.data.email || '',
@@ -63,13 +70,13 @@ const EditProfile = () => {
         try {
             const userId = user?._id;
             if (!userId) throw new Error("User ID not available");
-    
+
             await axios.put(`https://api.indiafoodshop.com/api/auth/v1/user/${userId}`, formData, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-    
+
             alert('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);

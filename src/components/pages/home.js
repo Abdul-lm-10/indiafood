@@ -17,7 +17,7 @@ const Home = () => {
     const { addToCart } = useCart();
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
     const [cartItems, setCartItems] = useState({});
     const filteredProducts = activeTab === 'All'
         ? products
@@ -311,11 +311,13 @@ const Home = () => {
                                                     <div key={product._id} className="col-md-6 col-lg-4 col-xl-3">
                                                         <div className="rounded position-relative fruite-item">
                                                             <div className="fruite-img" style={{ height: '250px', overflow: 'hidden' }}>
+                                                            <Link to={`/product/${product.slug}`}>
                                                                 <img
                                                                     src={`https://api.indiafoodshop.com${product.image}`}
                                                                     className="img-fluid w-100 h-100 rounded-top object-fit-cover"
                                                                     alt={product.name}
                                                                 />
+                                                                </Link>
                                                             </div>
                                                             <div className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: '10px', left: '10px' }}>
                                                                 {product.category}
@@ -331,7 +333,7 @@ const Home = () => {
                                                                     <div>
                                                                         {product.prices.map((item, idx) => (
                                                                             <p key={idx} className="text-dark fs-6 mb-0">
-                                                                                ₹{item.price} / {item.quantity}
+                                                                                {currencySymbol}{item.price} / {item.quantity}
                                                                             </p>
                                                                         ))}
                                                                     </div>
@@ -420,7 +422,7 @@ const Home = () => {
                                     <div key={product._id} className="col-md-6 col-lg-4 col-xl-3">
                                         <div className="rounded position-relative fruite-item">
                                             <div className="fruite-img" style={{ height: '250px', overflow: 'hidden' }}>
-                                                <Link to={`/product/${product._id}`}>
+                                            <Link to={`/product/${product.slug}`}>
                                                     <img
                                                         src={`https://api.indiafoodshop.com${product.image}`}
                                                         className="img-fluid w-100 h-100 rounded-top object-fit-cover"
@@ -440,7 +442,7 @@ const Home = () => {
                                                     <div>
                                                         {product.prices.map((item, idx) => (
                                                             <p key={idx} className="text-dark fs-6 mb-0">
-                                                                ₹{item.price} / {item.quantity}
+                                                                {currencySymbol}{item.price} / {item.quantity}
                                                             </p>
                                                         ))}
                                                     </div>
@@ -534,7 +536,7 @@ const Home = () => {
                                             </div>
                                             <h4 className="mb-3">{product.prices.map((item, idx) => (
                                                 <p key={idx} className="text-dark fs-6 mb-0">
-                                                    ₹{item.price} / {item.quantity}
+                                                    {currencySymbol}{item.price} / {item.quantity}
                                                 </p>
                                             ))}</h4>
                                             <a className="btn border border-secondary rounded-pill px-3 text-primary" onClick={() => addToCart(product, selectedCountryId)}>

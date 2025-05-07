@@ -12,7 +12,7 @@ import Banner from "./order/banner";
 const ProductList = () => {
 
     const [loading, setLoading] = useState(true);
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("default");
 
@@ -76,7 +76,7 @@ const ProductList = () => {
                             <div class="row g-4">
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm}  sortOption={sortOption}/>
+                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm}  sortOption={sortOption} currencySymbol={currencySymbol}/>
                                     </div>
                                 </div>
                                 {/* Products List End */}

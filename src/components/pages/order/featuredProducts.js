@@ -8,7 +8,7 @@ const FeaturedProducts = () => {
     const { addToCart } = useCart();
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
 
 
     useEffect(() => {
@@ -69,7 +69,7 @@ const FeaturedProducts = () => {
                                     <div className="d-flex flex-column">
                                         {product.prices.map((item, idx) => (
                                             <p key={idx} className="text-dark fs-6 mb-0">
-                                                ₹{item.price} / {item.quantity}
+                                                {currencySymbol}{item.price} / {item.quantity}
                                             </p>
                                         ))}
                                     </div>

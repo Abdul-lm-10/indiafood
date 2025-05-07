@@ -18,11 +18,12 @@ const ProductDetails = () => {
     const [loading, setLoading] = useState(true);
     const [productDetails, setProductDetails] = useState(null);
     const [quantity, setQuantity] = useState(1);
+    const [selectedPriceIndex, setSelectedPriceIndex] = useState(0);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('description');
     let { slug } = useParams();
     const { user } = useAuth();
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
 
     const handleQuantityChange = (action) => {
         if (action === 'minus' && quantity > 1) {
@@ -33,9 +34,10 @@ const ProductDetails = () => {
     };
 
     const handleAddToCart = () => {
-        addToCart(productDetails, selectedCountryId, quantity);
+        addToCart(productDetails, selectedCountryId, selectedPriceIndex, quantity);
     };
 
+    
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
@@ -57,10 +59,13 @@ const ProductDetails = () => {
         fetchProductDetails();
     }, [slug]);
 
+
+
     if (loading) return <Spinner />;
     if (error) return <div className="text-center py-5">{error}</div>;
     if (!productDetails) return <div className="text-center py-5">Product Hell not found</div>;
-
+    const countryPrices = productDetails.prices.filter(p => p.country_id === selectedCountryId);
+    const selectedPrice = countryPrices[selectedPriceIndex] || countryPrices[0];
     return (
         <>
             <Helmet>
@@ -99,21 +104,37 @@ const ProductDetails = () => {
                                 <div className="col-lg-6">
                                     <h4 className="fw-bold mb-3">{productDetails.name}</h4>
                                     <p className="mb-3">Category: {productDetails.category}</p>
+                                    {productDetails.prices && productDetails.prices.length > 0 && (
+                                        <div className="mb-3">
+                                            <label htmlFor="variant-select" className="form-label fw-bold">Choose Variant</label>
+                                            <select
+                                                id="variant-select"
+                                                className="form-select"
+                                                value={selectedPriceIndex}
+                                                onChange={(e) => {
+                                                    setSelectedPriceIndex(parseInt(e.target.value));
+                                                    setQuantity(1); // Reset quantity when variant changes
+                                                }}
+                                                style={{ width: '200px' }}
+                                            >
+                                                {productDetails.prices
+                                                    .filter(price => price.country_id === selectedCountryId)
+                                                    .map((price, index) => (
+                                                        <option key={index} value={index}>
+                                                            {price.quantity}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                        </div>
+                                    )}
 
-                                    {productDetails.prices &&
-                                        productDetails.prices
-                                            .filter(price => price.country_id === selectedCountryId)
-                                            .map((price, index) => (
-                                                <div key={index} className="mb-2">
-                                                    <h5 className="fw-bold">₹{price.price} / {price.quantity}</h5>
-                                                </div>
-                                            ))}
 
-                                    <div className="input-group quantity mb-5" style={{ width: '100px' }}>
+                                    {/* Quantity Controls */}
+                                    <div className="input-group quantity mb-4" style={{ width: '140px' }}>
                                         <div className="input-group-btn">
                                             <button
                                                 className="btn btn-sm btn-minus rounded-circle bg-light border"
-                                                onClick={() => handleQuantityChange('minus')}
+                                                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
                                             >
                                                 <i className="fa fa-minus"></i>
                                             </button>
@@ -127,13 +148,24 @@ const ProductDetails = () => {
                                         <div className="input-group-btn">
                                             <button
                                                 className="btn btn-sm btn-plus rounded-circle bg-light border"
-                                                onClick={() => handleQuantityChange('plus')}
+                                                onClick={() => setQuantity(prev => prev + 1)}
                                             >
                                                 <i className="fa fa-plus"></i>
                                             </button>
                                         </div>
                                     </div>
 
+                                    <div className="mb-3">
+                                        <p className="fw-bold mb-1">
+                                            Price per Unit: {currencySymbol}{selectedPrice?.price} / {selectedPrice?.quantity}
+                                        </p>
+                                        <p className="fw-bold mb-1">Selected Quantity: {quantity}</p>
+                                        <p className="fw-bold text-success">
+                                            Total Price: {currencySymbol}{(selectedPrice?.price * quantity).toFixed(2)}
+                                        </p>
+                                    </div>
+
+                                    {/* Add to Cart Button */}
                                     <button
                                         className="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary"
                                         onClick={handleAddToCart}
