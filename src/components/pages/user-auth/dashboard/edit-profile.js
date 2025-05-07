@@ -16,7 +16,7 @@ const EditProfile = () => {
         address: '',
         city: '',
         state: '',
-        pincode: ''
+        zip_code: ''
     });
 
     useEffect(() => {
@@ -40,7 +40,7 @@ const EditProfile = () => {
                 address: response.data.address || '',
                 city: response.data.city || '',
                 state: response.data.state || '',
-                pincode: response.data.pincode || ''
+                zip_code: response.data.zip_code || ''
             });
             setLoading(false);
         } catch (error) {
@@ -61,11 +61,15 @@ const EditProfile = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.put('https://api.indiafoodshop.com/admin/update-profile', formData, {
+            const userId = user?._id;
+            if (!userId) throw new Error("User ID not available");
+    
+            await axios.put(`https://api.indiafoodshop.com/api/auth/v1/user/${userId}`, formData, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
+    
             alert('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -179,12 +183,12 @@ const EditProfile = () => {
                                             />
                                         </div>
                                         <div className="col-md-2">
-                                            <label className="form-label">Pincode</label>
+                                            <label className="form-label">PinCode</label>
                                             <input
                                                 type="text"
                                                 className="form-control"
-                                                name="pincode"
-                                                value={formData.pincode}
+                                                name="zip_code"
+                                                value={formData.zip_code}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
