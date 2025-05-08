@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet';
 import axios from 'axios';
 
 const Checkout = () => {
-    const { cart } = useCart();
+    const { cart, clearCart } = useCart();
     const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -43,6 +43,14 @@ const Checkout = () => {
             setLoading(false);
         }, 1500);
     }, []);
+
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }, []);
+
     const handleCouponSubmit = async (e) => {
         e.preventDefault();
         if (!couponCode.trim()) {
@@ -56,7 +64,8 @@ const Checkout = () => {
         try {
             const validateResponse = await axios.post('https://api.indiafoodshop.com/admin/verify-coupon', {
                 coupon_code: couponCode.trim(),
-                user_id: user._id
+                user_id: user._id,
+                order_id: orderId || user._id
             });
             if (validateResponse.data && validateResponse.data.data) {
                 const couponData = validateResponse.data.data;
@@ -87,23 +96,83 @@ const Checkout = () => {
         }))
       };
       
-
     const handlePlaceOrder = async () => {
+        if (!user) {
+            alert('Please log in to place order.');
+            return;
+        }
+    
         try {
-            const orderResponse = await axios.post('https://api.indiafoodshop.com/admin/create-order', orderPayload);
-
-            if (orderResponse.data && orderResponse.data.order_id && couponCode) {
-                await axios.post('https://api.indiafoodshop.com/admin/verify-coupon', {
-                    coupon_code: couponCode.trim(),
-                    user_id: user._id,
-                    order_id: orderResponse.data.order_id
-                });
-            }
-            navigate('/order');
-        } catch (error) {
-            console.error('Order creation failed:', error);
+    
+            const { data } = await axios.post('https://api.indiafoodshop.com/admin/create-razorpay-order', {
+                amount: total ,
+                currency: 'INR',
+                user_id: user._id,
+                order_id: orderId ,
+            });
+    
+            const razorpayOrder = data;
+    
+            const options = {
+                key: 'rzp_test_T7RYplU5wIDWYV', 
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                name: 'India Food Shop',
+                description: 'Order Payment',
+                image: '/logo.png',
+                order_id: razorpayOrder.order_id, 
+                handler: async function (response) {
+                  console.log('Razorpay payment response:', response);
+              
+                  if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
+                    alert('Incomplete payment response from Razorpay.');
+                    return;
+                  }
+              
+                  try {
+                    const verificationResponse = await axios.post(
+                      'https://api.indiafoodshop.com/admin/verify-payment',
+                      {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        user_id: user._id,
+                        coupon_code: couponCode || null,
+                        order_data: orderPayload
+                      }
+                    );
+              
+                    if (verificationResponse.data.success) {
+                      navigate('/order');
+                    } else {
+                      alert('Payment verification failed. Please contact support.');
+                    }
+                  } catch (err) {
+                    console.error('Verification error:', err);
+                    alert('An error occurred while verifying payment.');
+                  }
+                },
+                prefill: {
+                  name: `${formData.firstName} ${formData.lastName}`,
+                  email: formData.email,
+                  contact: formData.mobile
+                },
+                notes: {
+                  address: formData.address
+                },
+                theme: {
+                  color: '#539A40'
+                }
+              };
+    
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (err) {
+            console.error('Payment initiation failed:', err);
+            alert('An error occurred. Please try again.');
         }
     };
+    
     const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces), 0);
     const discountAmount = (subtotal * couponDiscount) / 100;
     const total = subtotal - discountAmount;
@@ -116,6 +185,7 @@ const Checkout = () => {
                 <link href="/external-assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/bootstrap.min.css" rel="stylesheet" />
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
+                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
             </Helmet>
     
             {loading && <Spinner />}

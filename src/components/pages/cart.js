@@ -113,7 +113,7 @@ const Cart = () => {
                   </tr>
                 ) : (
                   cart.map((item) => {
-                    const quantityNumber = parseFloat(item.quantity) || 1;
+                    const quantityNumber = parseFloat(item.pieces) || 1;
                     const priceNumber = parseFloat(item.price) || 0;
                     const total = (quantityNumber * priceNumber).toFixed(2);
 
