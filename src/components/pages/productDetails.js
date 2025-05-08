@@ -23,6 +23,7 @@ const ProductDetails = () => {
     let { slug } = useParams();
     const { user } = useAuth();
     const { selectedCountryId } = useCountry();
+    const [selectedWeight, setSelectedWeight] = useState('1');
 
     const handleQuantityChange = (action) => {
         if (action === 'minus' && quantity > 1) {
@@ -32,9 +33,25 @@ const ProductDetails = () => {
         }
     };
 
-    const handleAddToCart = () => {
-        addToCart(productDetails, selectedCountryId, quantity);
+    const handleWeightChange = (event) => {
+        setSelectedWeight(event.target.value);
     };
+
+    const handleAddToCart = () => {
+        const selectedPrice = productDetails.prices.find(
+            price => price.country_id === selectedCountryId &&
+                price.quantity.split(' ')[0] === selectedWeight
+        );
+        if (selectedPrice) {
+            addToCart({
+                ...productDetails,
+                selectedWeight,
+                price: selectedPrice.price,
+                quantity: selectedPrice.quantity
+            }, selectedCountryId, quantity);
+        }
+    };
+
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -100,14 +117,23 @@ const ProductDetails = () => {
                                     <h4 className="fw-bold mb-3">{productDetails.name}</h4>
                                     <p className="mb-3">Category: {productDetails.category}</p>
 
-                                    {productDetails.prices &&
-                                        productDetails.prices
-                                            .filter(price => price.country_id === selectedCountryId)
-                                            .map((price, index) => (
-                                                <div key={index} className="mb-2">
-                                                    <h5 className="fw-bold">₹{price.price} / {price.quantity}</h5>
-                                                </div>
-                                            ))}
+                                    {productDetails.prices && (
+                                        <div className="mb-4">
+                                            <select
+                                                className="form-select mb-3"
+                                                value={selectedWeight}
+                                                onChange={handleWeightChange}
+                                            >
+                                                {productDetails.prices
+                                                    .filter(price => price.country_id === selectedCountryId)
+                                                    .map((price, index) => (
+                                                        <option key={index} value={price.quantity.split(' ')[0]}>
+                                                            {price.quantity} - ₹{price.price}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                        </div>
+                                    )}
 
                                     <div className="input-group quantity mb-5" style={{ width: '100px' }}>
                                         <div className="input-group-btn">
