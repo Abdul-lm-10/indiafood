@@ -54,14 +54,15 @@ const Header = ({ onCountryChange }) => {
                             <NavLink to={'/'} className="nav-item nav-link active">
                                 Home
                             </NavLink>
-                            <NavLink to={'/aboutus'} className="nav-item nav-link active">
-                                About Us
-                            </NavLink>
+                         
                             <NavLink to={'/categories'} className="nav-item nav-link">
                                 Categories
                             </NavLink>
                             <NavLink to={'/products'} className="nav-item nav-link">
                                 Products
+                            </NavLink>
+                            <NavLink to={'/aboutus'} className="nav-item nav-link active">
+                                About us
                             </NavLink>
                             <NavLink to={'/contact'} className="nav-item nav-link">Contact</NavLink>
                         </div>

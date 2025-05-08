@@ -50,7 +50,6 @@ const Categories = () => {
             try {
                 const res = await fetch(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
                 const data = await res.json();
-                console.log("Fetched Products:", data);
                 setProducts(data);
             } catch (err) {
                 console.error("Error fetching products:", err);
@@ -62,6 +61,7 @@ const Categories = () => {
 
         fetchProducts();
     }, [selectedCountryId]);
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setLoading(false);

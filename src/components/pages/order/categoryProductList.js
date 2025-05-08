@@ -8,34 +8,38 @@ const CategoryProductListComponent = ({ categoryId, searchTerm, sortOption }) =>
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { selectedCountryId } = useCountry();
+    const { selectedCountryId, currencySymbol } = useCountry();
     const { addToCart } = useCart();
 
     useEffect(() => {
         const fetchProducts = async () => {
-            try {
-                const res = await axios.get(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
-                setProducts(res.data);
-                console.log("Fetched data:", res.data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Fetch error:", error);
-                setError('Failed to fetch products');
-                setLoading(false);
-            }
+          try {
+            const res = await axios.get(`https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`);
+            setProducts(res.data);
+            console.log("Fetched data:", res.data);
+            setLoading(false);
+          } catch (error) {
+            console.error("Fetch error:", error);
+            setError('Failed to fetch products');
+            setLoading(false);
+          }
         };
-
-        if (categoryId) fetchProducts();
-    }, [categoryId]);
+      
+        if (categoryId && selectedCountryId) fetchProducts();
+      }, [categoryId, selectedCountryId]);
 
     const sortedProducts = useMemo(() => {
         let sorted = [...products];
-
+    
+        // Filter by categoryId first
+        sorted = sorted.filter(product => product.category_id === categoryId);
+    
+        // Then apply search and sorting
         const getLowestPrice = (product) => {
             if (!product.prices || product.prices.length === 0) return 0;
             return Math.min(...product.prices.map(p => parseFloat(p.price)));
         };
-
+    
         switch (sortOption) {
             case "az":
                 sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -52,11 +56,11 @@ const CategoryProductListComponent = ({ categoryId, searchTerm, sortOption }) =>
             default:
                 break;
         }
-
+    
         return sorted.filter(product =>
             product.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [products, sortOption, searchTerm]);
+    }, [products, sortOption, searchTerm, categoryId]);
 
     if (loading) return <p>Loading products...</p>;
     if (error) return <p>{error}</p>;
@@ -84,7 +88,7 @@ const CategoryProductListComponent = ({ categoryId, searchTerm, sortOption }) =>
                                 <div className="text-dark fs-5 fw-bold mb-0">
                                     {product.prices && product.prices.map((item, idx) => (
                                         <div key={idx} className="text-dark fs-6 mb-1">
-                                            ₹{item.price} / {item.quantity}
+                                            {currencySymbol}{item.price} / {item.quantity}
                                         </div>
                                     ))}
                                 </div>

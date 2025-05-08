@@ -30,7 +30,7 @@ const Login = () =>{
         e.preventDefault();
         try {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/login', formData);
-            // console.log(res);
+            console.log(res);
             setError(-1)
             setErrorMsg('');
             login(res.data.token, res.data.user);

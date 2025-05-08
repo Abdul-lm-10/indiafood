@@ -16,6 +16,8 @@ const Cart = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   let { slug } = useParams();
+
+
   useEffect(() => {
     const fetchProducts = async () => {
       if (!selectedCountryId) {
@@ -47,23 +49,22 @@ const Cart = () => {
   }, [selectedCountryId]);
 
   const subtotal = cart.reduce((total, item) => {
-    const price = Number(item.price || 0); // Handle price as a number
-    return total + price * (Number(item.quantity) || 1); // Calculate total price for each item
+    const price = Number(item.price || 0); 
+    return total + price * (Number(item.pieces) || 1);
   }, 0);
 
   const shipping = cart.length ? 33.90 : 0;
   const total = subtotal + shipping;
 
-  const handleIncrease = (item) => {
-    const currentQty = Number(item.quantity || 1);
-    updateCartItem(item._id, currentQty + 1);
+  const handleIncreasePieces = (item) => {
+    const updatedPieces = item.pieces + 1;
+    updateCartItem(item._id, updatedPieces);
   };
-
-  const handleDecrease = (item) => {
-    const currentQty = Number(item.quantity || 1);
-    const newQuantity = currentQty - 1;
-    if (newQuantity >= 1) {
-      updateCartItem(item._id, newQuantity);
+  
+  const handleDecreasePieces = (item) => {
+    if (item.pieces > 1) {
+      const updatedPieces = item.pieces - 1;
+      updateCartItem(item._id, updatedPieces);
     }
   };
 
@@ -95,10 +96,12 @@ const Cart = () => {
             <table className="table">
               <thead>
                 <tr>
-                  <th scope="col">Products</th>
+                  <th scope="col">Product</th>
                   <th scope="col">Name</th>
                   <th scope="col">Price</th>
                   <th scope="col">Quantity</th>
+                  <th scope="col">Pieces</th>
+                  <th scope="col">Status</th>
                   <th scope="col">Total</th>
                   <th scope="col">Handle</th>
                 </tr>
@@ -106,48 +109,70 @@ const Cart = () => {
               <tbody>
                 {cart.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-5">Your cart is empty</td>
+                    <td colSpan="8" className="text-center py-5">Your cart is empty</td>
                   </tr>
                 ) : (
-                  cart.map((item) => (
-                    <tr key={item._id}>
-                      <th scope="row">
-                        <div className="d-flex align-items-center">
-                          <img
-                            src={`https://api.indiafoodshop.com${item.product_id.image}`} // Access the image from product_id
-                            className="img-fluid me-5 rounded-circle"
-                            style={{ width: '80px', height: '80px' }}
-                            alt={item.product_id.name} // Access the name from product_id
-                          />
-                        </div>
-                      </th>
-                      <td>
-                        <p className="mb-0 mt-4">{item.product_id.name}</p> {/* Access the name from product_id */}
-                      </td>
-                      <td>
-                        <p className="mb-0 mt-4">₹{item.price || 'N/A'}</p>
-                      </td>
-                      <td>
-                        <div className="input-group quantity mt-4" style={{ width: '120px' }}>
-                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleDecrease(item)}>-</button>
-                          <input type="text" className="form-control form-control-sm text-center border-0" value={item.quantity || 1} readOnly />
-                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleIncrease(item)}>+</button>
-                        </div>
-                      </td>
-                      <td>
-                        <p className="mb-0 mt-4">₹{(Number(item.price) * (Number(item.quantity) || 1)).toFixed(2)}</p>
-                      </td>
-                      <td>
-                        <button className="btn btn-md rounded-circle bg-light border mt-4" onClick={() => removeFromCart(item._id)}>
-                          <i className="fa fa-times text-danger"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  cart.map((item) => {
+                    const quantityNumber = parseFloat(item.pieces) || 1;
+                    const priceNumber = parseFloat(item.price) || 0;
+                    const total = (quantityNumber * priceNumber).toFixed(2);
+
+                    return (
+                      <tr key={item._id}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <img
+                              src={`https://api.indiafoodshop.com${item.product_id.image}`}
+                              className="img-fluid me-5 rounded-circle"
+                              style={{ width: '80px', height: '80px' }}
+                              alt={item.product_id.name}
+                            />
+                          </div>
+                        </td>
+                        <td className="align-middle">{item.product_id.name}</td>
+                        <td className="align-middle">₹{priceNumber}</td>
+                        <td className="align-middle">{item.quantity}</td>
+                        <td className="align-middle">
+                          <div className="input-group quantity" style={{ width: '120px' }}>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => handleDecreasePieces(item)}
+                            >
+                              -
+                            </button>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm text-center border-0"
+                              value={item.pieces}
+                              readOnly
+                            />
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => handleIncreasePieces(item)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+
+                        <td className="align-middle">{item.status}</td>
+                        <td className="align-middle">₹{total}</td>
+                        <td className="align-middle">
+                          <button
+                            className="btn btn-md rounded-circle bg-light border"
+                            onClick={() => removeFromCart(item._id)}
+                          >
+                            <i className="fa fa-times text-danger"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
+
 
           {cart.length > 0 && (
             <>
@@ -175,7 +200,7 @@ const Cart = () => {
                               // onClick={() => navigate(`/product-details/${product.slug}`)}
                               style={{ cursor: 'pointer' }}
                             >
-                              <div className="fruite-img position-relative overflow-hidden"  style={{ height: '250px'}}>
+                              <div className="fruite-img position-relative overflow-hidden" style={{ height: '250px' }}>
                                 <img
                                   src={`https://api.indiafoodshop.com${product.image}`}
                                   className="img-fluid w-100 h-100 rounded-top"

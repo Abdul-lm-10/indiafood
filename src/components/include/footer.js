@@ -13,10 +13,10 @@ const Footer = () => {
                             </a>
                         </div>
                         <div className="col-lg-6">
-                            <div className="position-relative mx-auto">
+                            {/* <div className="position-relative mx-auto">
                                 <input className="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number" placeholder="Your Email" />
                                 <button type="submit" className="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white" style={{ top: '0', right: '0' }}>Subscribe Now</button>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="col-lg-3">
                             <div className="d-flex justify-content-end pt-3">

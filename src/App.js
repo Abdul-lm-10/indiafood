@@ -3,6 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Home from './components/pages/home';
 import Categories from './components/pages/category';
+import { CartProvider } from './context/CartContext';
 import ProductList from './components/pages/productsList';
 import ProductDetails from './components/pages/productDetails';
 import Cart from './components/pages/cart';
@@ -18,7 +19,6 @@ import { useContext } from 'react';
 import EditProfile from './components/pages/user-auth/dashboard/edit-profile';
 import Logout from './components/pages/user-auth/logout';
 import CategoryProductList from './components/pages/categoryProductList';
-import { CartProvider } from './context/CartContext';
 import Header from './components/include/header';
 import { CountryProvider } from './context/CountryContext';
 import OrderPage from './components/pages/OrderPage';
@@ -27,6 +27,7 @@ import AboutProduct from './components/pages/AboutProduct';
 import OTP from './components/pages/user-auth/otp';
 import UserDetails from './components/pages/user-auth/dashboard/user-details';
 import OrderTracking from './components/pages/OrderTracking';
+import CartSyncHandler from './utils/CartSyncHandler';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -39,6 +40,7 @@ function App() {
       <AuthProvider>
         <CountryProvider>
           <CartProvider>
+          <CartSyncHandler />
             <Router>
               <ScrollManager />
               <Header />
