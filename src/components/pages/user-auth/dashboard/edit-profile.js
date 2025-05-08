@@ -5,10 +5,12 @@ import axios from 'axios';
 import Footer from '../../../include/footer';
 import Spinner from '../../../include/spinner';
 import SearchModel from '../../../include/searchModel';
+import { useCountry } from '../../../../context/CountryContext';
 
 const EditProfile = () => {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
+    const { countryCode } = useCountry();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -40,10 +42,14 @@ const EditProfile = () => {
             setUser(response.data);
             console.log(response.data);
 
+            // Add country code to phone number if it doesn't already have one
+            const phoneNumber = response.data.phone_number || '';
+            const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `${countryCode} ${phoneNumber}`;
+
             setFormData({
                 name: response.data.name || '',
                 email: response.data.email || '',
-                phone_number: response.data.phone_number || '',
+                phone_number: formattedPhoneNumber,
                 address: response.data.address || '',
                 city: response.data.city || '',
                 state: response.data.state || '',
@@ -58,10 +64,19 @@ const EditProfile = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        if (name === 'phone_number') {
+            // Remove any existing country code or non-digit characters
+            const cleanNumber = value.replace(/^\+\d+\s*|[^\d]/g, '');
+            setFormData(prev => ({
+                ...prev,
+                [name]: countryCode + ' ' + cleanNumber
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -157,6 +172,7 @@ const EditProfile = () => {
                                                 name="phone_number"
                                                 value={formData.phone_number}
                                                 onChange={handleInputChange}
+                                                placeholder={`${countryCode} Phone Number`}
                                             />
                                         </div>
                                         <div className="col-12">

@@ -2,12 +2,14 @@ import { useEffect, useState, useContext } from "react"
 import axios from 'axios';
 import { AuthContext } from "../../../context/AuthContext"
 import { useNavigate } from "react-router-dom"
+import { useCountry } from "../../../context/CountryContext";
 
 const Signup = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
+    const { countryCode } = useCountry();
 
     const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -33,12 +35,23 @@ const Signup = () => {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', formData);
             setError(-1);
             setErrorMsg('');
-            navigate('/otp', { state: { email: formData.email } }); 
+            navigate('/otp', { state: { email: formData.email } });
         } catch (err) {
             setError(1);
             setErrorMsg(err.response?.data?.message || "Something Went Wrong");
         }
     };
+    const handlePhoneChange = (e) => {
+        const value = e.target.value;
+        // Remove any existing country code or non-digit characters
+        const cleanNumber = value.replace(/^\+\d+\s*|[^\d]/g, '');
+        // Only add country code if there's a number
+        setFormData({
+            ...formData,
+            phone_number: cleanNumber ? `${countryCode} ${cleanNumber}` : ''
+        });
+    };
+
     return (
         <>
 
@@ -68,8 +81,16 @@ const Signup = () => {
                                 <input type="email" class="form-control" id="email" placeholder="Enter your email" onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
                             </div>
                             <div class="mb-3">
-                                <label for="phone_number" class="form-label">Phone Number</label>
-                                <input type="text" class="form-control" id="phone_number" placeholder="Enter your Phone Number" onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })} required />
+                                <label htmlFor="phone_number" className="form-label">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    className="form-control"
+                                    id="phone_number"
+                                    placeholder="Enter your phone number"
+                                    value={formData.phone_number}
+                                    onChange={handlePhoneChange}
+                                    required
+                                />
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
