@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import SearchModel from '../include/searchModel';
 import Spinner from '../include/spinner';
 import Footer from '../include/footer';
-import OrderTracking from './OrderTracking';
 
 const OrderPage = () => {
     const [loading, setLoading] = useState(true);
@@ -87,58 +86,35 @@ const OrderPage = () => {
                                                 <tr>
                                                     <th>Order ID</th>
                                                     <th>Date</th>
-                                                    <th>Product</th>
-                                                    <th>Quantity</th>
-                                                    <th>Price</th>
+                                                    <th>Items</th>
+                                                    <th>Total Price</th>
                                                     <th>Status</th>
                                                     <th>Payment</th>
                                                 </tr>
                                             </thead>
-                                            {/* <tbody>
-                                                {orders.map((order) => (
-                                                    <tr key={order._id}>
-                                                        <td>#{order._id.slice(-6)}</td>
-                                                        <td>{order.date_time}</td>
-                                                        <td>{order.product_name}</td>
-                                                        <td>{order.quantity} ({order.pieces} pieces)</td>
-                                                        <td>₹{order.price}</td>
-                                                        <td>
-                                                            <span className={`badge ${
-                                                                order.order_status === 'Pending' ? 'bg-warning' :
-                                                                order.order_status === 'Processing' ? 'bg-info' :
-                                                                order.order_status === 'Shipped' ? 'bg-primary' :
-                                                                order.order_status === 'Delivered' ? 'bg-success' :
-                                                                'bg-secondary'
-                                                            }`}>
-                                                                {order.order_status}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
-                                                                {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody> */}
-
-
                                             <tbody>
-                                                {orders.map(order =>
-                                                    order.items.map((item, index) => (
-                                                        <tr key={`${order._id}-${index}`}>
+                                                {orders.map(order => {
+                                                    const totalPrice = order.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+                                                    return (
+                                                        <tr key={order._id}>
                                                             <td>#{order.order_no}</td>
                                                             <td>{order.date_time}</td>
-                                                            <td>{item.product_name}</td>
-                                                            <td>{item.quantity} ({item.pieces} pieces)</td>
-                                                            <td>₹{item.price}</td>
+                                                            <td>
+                                                                <ul className="list-unstyled mb-0">
+                                                                    {order.items.map((item, index) => (
+                                                                        <li key={index}>
+                                                                            {item.product_name} - {item.quantity} ({item.pieces} pieces) - ₹{item.price}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </td>
+                                                            <td>₹{totalPrice.toFixed(2)}</td>
                                                             <td>
                                                                 <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
                                                                         order.order_status === 'Processing' ? 'bg-info' :
                                                                             order.order_status === 'Shipped' ? 'bg-primary' :
                                                                                 order.order_status === 'Delivered' ? 'bg-success' :
-                                                                                    'bg-secondary'
-                                                                    }`}>
+                                                                                    'bg-secondary'}`}>
                                                                     {order.order_status}
                                                                 </span>
                                                             </td>
@@ -148,8 +124,8 @@ const OrderPage = () => {
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                    ))
-                                                )}
+                                                    );
+                                                })}
                                             </tbody>
                                         </table>
                                         {orders.length === 0 && (
