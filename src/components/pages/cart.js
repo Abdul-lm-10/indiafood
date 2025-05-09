@@ -59,13 +59,15 @@ const Cart = () => {
 
   const handleIncreasePieces = (item) => {
     const updatedPieces = item.pieces + 1;
-    updateCartItem(item._id, updatedPieces);
+    const cartItemId = user ? item._id : item.product_id;
+    updateCartItem(cartItemId, updatedPieces);
   };
 
   const handleDecreasePieces = (item) => {
     if (item.pieces > 1) {
       const updatedPieces = item.pieces - 1;
-      updateCartItem(item._id, updatedPieces);
+      const cartItemId = user ? item._id : item.product_id;
+      updateCartItem(cartItemId, updatedPieces);
     }
   };
 
@@ -123,7 +125,11 @@ const Cart = () => {
                         <td>
                           <div className="d-flex align-items-center">
                             <img
-                              src={`https://api.indiafoodshop.com${item.product_details.image}` || `https://api.indiafoodshop.com${item.product_id.image}` }
+                              src={
+                                item.product_details?.image
+                                  ? `https://api.indiafoodshop.com${item.product_details?.image}`
+                                  : `https://api.indiafoodshop.com${item.product_id?.image}`
+                              }
                               className="img-fluid me-5 rounded-circle"
                               style={{ width: '80px', height: '80px' }}
                               alt={item.product_id.name}
@@ -131,7 +137,7 @@ const Cart = () => {
 
                           </div>
                         </td>
-                        <td className="align-middle">{item.product_details.name || item.product_id.name}</td>
+                        <td className="align-middle">{item.product_details?.name || item.product_id?.name}</td>
                         <td className="align-middle">{currencySymbol}{priceNumber}</td>
                         <td className="align-middle">{item.quantity}</td>
                         <td className="align-middle">
@@ -162,7 +168,7 @@ const Cart = () => {
                         <td className="align-middle">
                           <button
                             className="btn btn-md rounded-circle bg-light border"
-                            onClick={() => removeFromCart(item._id)}
+                            onClick={() => removeFromCart(user ? item._id : item.product_id)}
                           >
                             <i className="fa fa-times text-danger"></i>
                           </button>
@@ -266,7 +272,7 @@ const Cart = () => {
                     <div className="px-4 pb-4">
                       <button
                         className="btn border-secondary rounded-pill py-3 w-100 text-primary text-uppercase"
-                        onClick={() => {navigate("/checkout");}}>
+                        onClick={() => { navigate("/checkout"); }}>
                         Proceed to Checkout
                       </button>
                     </div>

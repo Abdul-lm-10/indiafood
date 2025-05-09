@@ -264,9 +264,12 @@ export const CartProvider = ({ children }) => {
     if (!user) {
       const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
       const updatedCart = guestCart.map(item =>
-        item.product._id === cartItemId ? { ...item, pieces } : item
+        item.product_id === cartItemId ? { ...item, pieces } : item
+          === cartItemId ? { ...item, pieces } : item
       );
       localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+      console.log("Trying to update/remove product_id:", cartItemId);
+console.log("Guest cart items:", guestCart.map(i => i.product_id));
       setCart(updatedCart);
       return;
     }
@@ -286,7 +289,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (cartItemId) => {
     if (!user) {
       const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
-      const updatedCart = guestCart.filter(item => item.product._id !== cartItemId);
+      const updatedCart = guestCart.filter(item => item.product_id !== cartItemId);
       localStorage.setItem("guestCart", JSON.stringify(updatedCart));
       setCart(updatedCart);
       return;
