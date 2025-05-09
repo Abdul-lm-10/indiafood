@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCountry } from "../../../context/CountryContext";
-
+import { toast } from 'react-toastify';
 
 const CategoriesGroup = () => {
     const [loading, setLoading] = useState(true);
@@ -39,8 +39,8 @@ const CategoriesGroup = () => {
                 console.log("Fetched Products:", data);
                 setProducts(data);
             } catch (err) {
-                console.error("Error fetching products:", err);
-                setError("Failed to fetch products.");
+                toast.error("Error fetching products:", err);
+                toast.error("Failed to fetch products.");
             } finally {
                 setLoading(false);
             }

@@ -6,7 +6,9 @@ import SearchModel from '../include/searchModel';
 import Spinner from '../include/spinner';
 import { Helmet } from 'react-helmet';
 import axios from 'axios';
+import { useAuth } from "../../context/AuthContext";
 import defultImage from "../../external-assets/img/ifs-logo-3.png"
+import { toast } from 'react-toastify';
 
 const Checkout = () => {
     const { cart, clearCart } = useCart();
@@ -18,18 +20,13 @@ const Checkout = () => {
     const [couponDiscount, setCouponDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
     const [orderId, setOrderId] = useState('');
-    const [createAccountChecked, setCreateAccountChecked] = useState(false);
-    const [signupForm, setSignupForm] = useState({
-        name: '',
-        email: '',
-        phone_number: '',
-        password: '',
-        country: '',
-        state: '',
-        city: '',
-        address: '',
-        zip_code: '',
-    });
+    const [createAccount, setCreateAccount] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const { login } = useAuth();
+    const [confirmPassword, setConfirmPassword] = useState('');
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -43,6 +40,10 @@ const Checkout = () => {
         createAccount: false,
         differentAddress: false,
         orderNotes: ''
+    });
+
+    const [signupData, setSignupData] = useState({
+        password: ''
     });
 
     const handleInputChange = (e) => {
@@ -66,14 +67,31 @@ const Checkout = () => {
         document.body.appendChild(script);
     }, []);
 
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                firstName: user.name?.split(" ")[0] || '',
+                lastName: user.name?.split(" ")[1] || '',
+                email: user.email || '',
+                mobile: user.phone_number || '',
+                address: user.address || '',
+                townCity: user.city || '',
+                state: user.state || '',
+                country: user.country || '',
+                postcode: user.zip_code || ''
+            }));
+        }
+    }, [user]);
+
     const handleCouponSubmit = async (e) => {
         e.preventDefault();
         if (!couponCode.trim()) {
-            setCouponError('Please enter a coupon code');
+            toast.error('Please enter a coupon code');
             return;
         }
         if (!user || !user._id) {
-            setCouponError('Please login to apply coupon');
+            toast.error('Please login to apply coupon');
             return;
         }
         try {
@@ -88,11 +106,13 @@ const Checkout = () => {
                 setCouponError('');
             } else {
                 setCouponError(validateResponse.data.message || 'Invalid coupon code');
+                toast.error(validateResponse.data.message || 'Invalid coupon code');
                 setCouponDiscount(0);
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Error validating coupon';
             setCouponError(errorMessage);
+            toast.error(errorMessage);
             setCouponDiscount(0);
         }
     };
@@ -101,7 +121,7 @@ const Checkout = () => {
     const orderPayload = {
         user_id: user ? user._id : null,
         location: formData.address,
-        name: `${formData.firstName} ${formData.lastName}`,
+        name: formData.firstName,
         city: formData.townCity,
         state: formData.state,
         country: formData.country,
@@ -126,7 +146,7 @@ const Checkout = () => {
     const handlePlaceOrder = async () => {
         if (!formData.firstName || !formData.lastName || !formData.mobile || !formData.email || !formData.address ||
             !formData.townCity || !formData.country || !formData.postcode || !formData.state) {
-            alert('Please fill in all required fields.');
+            toast.error('Please fill in all required fields.');
             return;
         }
 
@@ -162,7 +182,7 @@ const Checkout = () => {
                     console.log('Razorpay payment response:', response);
 
                     if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
-                        alert('Incomplete payment response from Razorpay.');
+                        toast.error('Incomplete payment response from Razorpay.');
                         return;
                     }
 
@@ -180,20 +200,17 @@ const Checkout = () => {
                         );
 
                         if (verificationResponse.data.success) {
+                            toast.success('Payment successful! Your order has been placed.');
                             clearCart()
-                            if (createAccountChecked) {
-                                navigate('/login', {
-                                    state: { ...signupForm }
-                                });
-                            } else {
-                                navigate('/order');
-                            }
+                           setTimeout (() => {
+                            navigate('/order');
+                            }, 6000);
                         } else {
-                            alert('Payment verification failed. Please contact support.');
+                            toast.error('Payment verification failed. Please contact support.');
                         }
                     } catch (err) {
                         console.error('Verification error:', err);
-                        alert('An error occurred while verifying payment.');
+                        toast.error('An error occurred while verifying payment.');
                     }
                 },
                 prefill: {
@@ -212,10 +229,60 @@ const Checkout = () => {
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (err) {
-            console.error('Payment initiation failed:', err);
+            toast.error('Payment initiation failed:', err);
             alert('An error occurred. Please try again.');
         }
     };
+
+    // Function to handle Signup
+    const handleSignupBeforeCheckout = async () => {
+        if (!signupData.password) {
+            toast.error("Password is required to create an account");
+            return;
+        }
+
+        if (signupData.password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        const signupPayload = {
+            name: formData.firstName,
+            email: formData.email,
+            phone_number: formData.mobile,
+            password: signupData.password,
+            country: formData.country,
+            address: formData.address,
+            city: formData.townCity,
+            state: formData.state,
+            zip_code: formData.postcode,
+            date_time: new Date().toISOString(),
+        };
+
+        try {
+            const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', signupPayload);
+           toast.success("OTP sent to your email");
+            setOtpSent(true);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Signup failed");
+        }
+    };
+
+
+    // Function to handle OTP
+    const handleVerifyOtp = async () => {
+        try {
+            const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/verify-otp', {
+                email: formData.email,
+                otp: otp
+            });
+            toast.success("OTP verified successfully");
+            login(res.data.token, res.data.user);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Signup failed");
+        }
+    };
+
 
     const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces), 0);
     const discountAmount = (subtotal * couponDiscount) / 100;
@@ -265,7 +332,7 @@ const Checkout = () => {
 
                             <div className="row">
                                 <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">First Name<span className='text-danger'>*</span></label>
+                                    <label className="form-label fw-bold">Name<span className='text-danger'>*</span></label>
                                     <input
                                         type="text"
                                         className="form-control py-2"
@@ -276,30 +343,8 @@ const Checkout = () => {
                                         style={{ borderRadius: "8px" }}
                                     />
                                 </div>
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Last Name<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
 
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Company Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="companyName"
-                                        value={formData.companyName}
-                                        onChange={handleInputChange}
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
+
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label fw-bold">Mobile<span className='text-danger'>*</span></label>
                                     <input
@@ -390,18 +435,75 @@ const Checkout = () => {
                                     />
                                 </div>
 
-                                <div className="form-check my-3">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        id="createAccount"
-                                        checked={createAccountChecked}
-                                        onChange={(e) => setCreateAccountChecked(e.target.checked)}
-                                    />
-                                    <label className="form-check-label" htmlFor="createAccount">
-                                        Create an account with this information
-                                    </label>
-                                </div>
+                                {!user && (
+                                    <div className="form-check mb-4">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            checked={createAccount}
+                                            onChange={(e) => setCreateAccount(e.target.checked)}
+                                        />
+                                        <label className="form-check-label" htmlFor="createAccount">
+                                            Create an account with this information
+                                        </label>
+                                    </div>
+                                )}
+                                {createAccount && (
+                                    <>
+                                        {createAccount && (
+                                            <div className='row'>
+                                                <div className="col-md-6 mb-4" >
+                                                    <label className="form-label fw-bold">Password<span className='text-danger'>*</span></label>
+                                                    <input
+                                                        className="form-control py-2"
+                                                        type="password"
+                                                        placeholder="Password"
+                                                        value={signupData.password}
+                                                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-md-6 mb-4">
+                                                    <label className="form-label fw-bold">Confirm Password<span className='text-danger'>*</span></label>
+                                                    <input
+                                                        className="form-control py-2"
+                                                        type="password"
+                                                        placeholder="Confirm Password"
+                                                        value={confirmPassword}
+                                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    />
+                                                </div>
+
+                                                <div className="col-md-6 mb-4">
+                                                    <button type="button"
+                                                        className="btn btn-primary text-white py-2 px-3 "
+                                                        style={{ borderRadius: "8px", }} onClick={handleSignupBeforeCheckout}>Send OTP</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {otpSent && !otpVerified && (
+                                    <>
+                                        <div className="col-md-6 mb-4" >
+                                            <label className="form-label fw-bold">OTP<span className='text-danger'>*</span></label>
+
+                                            <input
+                                                type="text"
+                                                className="form-control py-2"
+                                                placeholder="Enter OTP"
+                                                value={otp}
+                                                onChange={(e) => setOtp(e.target.value)}
+                                            />
+                                            <button type="button"
+                                                className="btn btn-primary text-white py-2 px-3 "
+                                                style={{ borderRadius: "8px", marginTop: "13px" }}
+                                                onClick={handleVerifyOtp}>Verify OTP</button>
+                                        </div>
+                                    </>
+
+                                )}
+
 
                                 <div className="form-check mb-3">
                                     <input
@@ -500,9 +602,10 @@ const Checkout = () => {
                                 {couponError && <div className="text-danger mt-2">{couponError}</div>}
                                 {couponDiscount > 0 && (
                                     <div className="text-success mt-2">
-                                        <i className="fas fa-check-circle me-1"></i> Coupon applied! You saved {currencySymbol}{discountAmount}
+                                        <i className="fas fa-check-circle me-1"></i> Coupon applied! You saved {currencySymbol}{discountAmount.toFixed(2)} ({couponDiscount}% off)
                                     </div>
                                 )}
+
                             </div>
 
                             {/* Order Total */}

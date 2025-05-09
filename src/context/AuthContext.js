@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export const AuthContext = createContext();
 
@@ -8,7 +9,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true); 
 
-  
   // Fetch user details when token is present
   useEffect(() => {
     if (token) {                  
@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(user));
     setToken(token);
     setUser(user); 
+    toast.success('Login successful');
   };
 
   // Logout function to clear token and user data
@@ -48,6 +49,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    toast.success('Logout successful');
+    window.location.reload(); 
   };
 
   if (loading) {

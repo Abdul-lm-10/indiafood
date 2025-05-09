@@ -3,9 +3,9 @@ import axios from 'axios';
 import { AuthContext } from "../../../context/AuthContext"
 import { useCountry } from "../../../context/CountryContext";
 import { useNavigate, useLocation } from "react-router-dom"
+import { toast } from 'react-toastify';
 
 const Signup = () => {
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
@@ -41,11 +41,14 @@ const Signup = () => {
         e.preventDefault();
         try {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', formData);
+            toast.success("OTP Sent Successfully");
             setError(-1);
             setErrorMsg('');
             navigate('/otp', { state: { email: formData.email } });
         } catch (err) {
             setError(1);
+            toast.error(err);
+            
             setErrorMsg(err.response?.data?.message || "Something Went Wrong");
         }
     };

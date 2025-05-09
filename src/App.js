@@ -28,6 +28,8 @@ import OTP from './components/pages/user-auth/otp';
 import UserDetails from './components/pages/user-auth/dashboard/user-details';
 import OrderTracking from './components/pages/OrderTracking';
 import CartSyncHandler from './utils/CartSyncHandler';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -80,6 +82,9 @@ function App() {
           </CartProvider>
         </CountryProvider>
       </AuthProvider>
+
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+
     </>
   );
 }

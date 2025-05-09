@@ -11,10 +11,10 @@ const CartSyncHandler = () => {
     const syncGuestCart = async () => {
       if (user && user._id) {
         const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
-        for (const item of guestCart) {
-          await addToCart(item.product, item.selectedCountryId, item.selectedPriceIndex, item.quantity);
-        }
-        localStorage.removeItem("guestCart");
+        // for (const item of guestCart) {
+        //   await addToCart(item.product, item.selectedCountryId, item.selectedPriceIndex, item.quantity);
+        // }
+        // localStorage.removeItem("guestCart");
       }
     };
 

@@ -7,6 +7,7 @@ import { useCart } from "../../context/CartContext";
 import { useCountry } from "../../context/CountryContext";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from 'react-toastify';
 import defultImage from "../../external-assets/img/ifs-logo-3.png"
 
 const Cart = () => {
@@ -40,7 +41,7 @@ const Cart = () => {
         setProducts(productsData);
         // console.log('Products fetched successfully:', productsData);
       } catch (error) {
-        console.error('Failed to fetch products:', error.message);
+        toast.error('Failed to fetch products:', error.message);
       } finally {
         setLoading(false);
       }
@@ -181,7 +182,6 @@ const Cart = () => {
             </table>
           </div>
 
-
           {cart.length > 0 && (
             <>
               <div className="mt-4 mt-lg-5">
@@ -191,63 +191,6 @@ const Cart = () => {
               <div className="row g-4">
                 <div className="col-12 col-lg-8 order-2 order-lg-1">
                   {/* Explore More Products Section */}
-                  <div className="container px-0">
-                    <div className="text-center mb-4 mb-lg-5">
-                      <h2 className="section-title px-3 px-lg-5">
-                        <span className="px-2">Explore More Products</span>
-                      </h2>
-                    </div>
-                    <div className="row g-4">
-                      {Array.isArray(products) && products
-                        .filter(product => !cart.some(cartItem => cartItem.product_id?._id === product._id))
-                        .slice(0, 4)
-                        .map((product) => (
-                          <div key={product._id} className="col-12 col-sm-6">
-                            <div
-                              className="rounded position-relative fruite-item shadow-sm h-fit"
-                              // onClick={() => navigate(`/product-details/${product.slug}`)}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <div className="fruite-img position-relative overflow-hidden" style={{ height: '250px' }}>
-                                <img
-                                  src={product.image ? `https://api.indiafoodshop.com${product.image}` : '/path/to/default-image.jpg'} // Fallback image
-                                  className="img-fluid w-100 h-100 rounded-top"
-                                  alt={product.name}
-                                />
-                                <div className="text-white bg-secondary px-3 py-1 rounded position-absolute"
-                                  style={{ top: '10px', right: '10px' }}>
-                                  {product.category}
-                                </div>
-                              </div>
-                              <div className="p-4 border border-secondary border-top-0 rounded-bottom d-flex flex-column h-100">
-                                <h4 className="mb-3">{product.name}</h4>
-                                <p className="mb-4 flex-grow-1">{product.description.length > 50
-                                  ? `${product.description.trim().substring(0, 50)}...`
-                                  : product.description.trim()}</p>
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <div className="text-dark mb-0">
-                                    {product.prices && product.prices.map((price, idx) => (
-                                      <p key={idx} className="text-dark fs-5 fw-bold mb-0">
-                                        {currencySymbol}{price.price} / {price.quantity}
-                                      </p>
-                                    ))}
-                                  </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      addToCart(product, selectedCountryId);
-                                    }}
-                                    className="btn border border-secondary rounded-pill px-3 text-primary"
-                                  >
-                                    <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
                 </div>
                 <div className="col-12 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
                   <div className="bg-light rounded shadow-sm sticky-lg-top" style={{ top: '20px' }}>
@@ -281,6 +224,69 @@ const Cart = () => {
               </div>
             </>
           )}
+
+          <div className="row g-4">
+            <div className="col-12 col-lg-12 order-2 order-lg-1">
+              {/* Explore More Products Section */}
+              <div className="container px-0">
+                <div className="text-center mb-4 mb-lg-5">
+                  <h2 className="section-title px-3 px-lg-5">
+                    <span className="px-2">Explore More Products</span>
+                  </h2>
+                </div>
+                <div className="row g-4">
+                  {Array.isArray(products) && products
+                    .filter(product => !cart.some(cartItem => cartItem.product_id?._id === product._id))
+                    .slice(0, 6)
+                    .map((product) => (
+                     <div key={product._id} className="col-12 col-md-6 col-lg-4">
+                        <div
+                          className="rounded position-relative fruite-item shadow-sm h-fit"
+                          // onClick={() => navigate(`/product-details/${product.slug}`)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="fruite-img position-relative overflow-hidden" style={{ height: '250px' }}>
+                            <img
+                              src={product.image ? `https://api.indiafoodshop.com${product.image}` : '/path/to/default-image.jpg'} // Fallback image
+                              className="img-fluid w-100 h-100 rounded-top"
+                              alt={product.name}
+                            />
+                            <div className="text-white bg-secondary px-3 py-1 rounded position-absolute"
+                              style={{ top: '10px', right: '10px' }}>
+                              {product.category}
+                            </div>
+                          </div>
+                          <div className="p-4 border border-secondary border-top-0 rounded-bottom d-flex flex-column h-100">
+                            <h4 className="mb-3">{product.name}</h4>
+                            <p className="mb-4 flex-grow-1">{product.description.length > 50
+                              ? `${product.description.trim().substring(0, 50)}...`
+                              : product.description.trim()}</p>
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div className="text-dark mb-0">
+                                {product.prices && product.prices.map((price, idx) => (
+                                  <p key={idx} className="text-dark fs-5 fw-bold mb-0">
+                                    {currencySymbol}{price.price} / {price.quantity}
+                                  </p>
+                                ))}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addToCart(product, selectedCountryId);
+                                }}
+                                className="btn border border-secondary rounded-pill px-3 text-primary"
+                              >
+                                <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

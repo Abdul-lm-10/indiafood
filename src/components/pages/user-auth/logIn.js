@@ -2,12 +2,12 @@ import { useEffect, useState, useContext } from "react"
 import axios from 'axios';
 import { AuthContext } from "../../../context/AuthContext"
 import { useNavigate } from "react-router-dom"
-const Login = () =>{
+import { toast } from "react-toastify";
 
+const Login = () =>{
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
-
     const { user,login } = useContext(AuthContext);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ email: '', password: ''});
@@ -33,13 +33,14 @@ const Login = () =>{
             console.log(res);
             setError(-1)
             setErrorMsg('');
+            toast.success("Login Successful");
             login(res.data.token, res.data.user);
             navigate('/dashboard/my-profile');
         } catch (err) { 
             if(err.response.data.message && err.response.data.message!=''){
                 setError(1);
                 setErrorMsg(err.response.data.message);
-                console.error(err);
+                toast.error(err);
             }else{
                 setError(1);
                 setErrorMsg("Something Went Wrong");

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useAuth } from "../../../context/AuthContext";
 
 const OTP = () => {
@@ -83,9 +84,11 @@ const OTP = () => {
             }); setTimer(30);
             setCanResend(false);
             setOtp(['', '', '', '', '', '']);
+            toast.success('OTP resent successfully');
             refs[0].current.focus();
         } catch (err) {
             setError('Failed to resend OTP');
+            toast.error('Failed to resend OTP');
         }
     };
 
@@ -95,6 +98,7 @@ const OTP = () => {
 
         if (otpString.length !== 6) {
             setError('Please enter all 6 digits');
+            toast.error('Please enter all 6 digits');
             return;
         }
 
@@ -104,10 +108,11 @@ const OTP = () => {
                 otp: otpString
             });
             console.log(res.data);
-
+            toast.success('OTP verified successfully');
             login(res.data.token, res.data.user);
             navigate('/dashboard/my-profile');
         } catch (err) {
+            toast.error('Invalid OTP');
             setError(err.response?.data?.message || 'Invalid OTP');
         }
     };
