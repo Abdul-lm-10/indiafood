@@ -1,14 +1,14 @@
 import { useEffect, useState, useContext } from "react"
 import axios from 'axios';
 import { AuthContext } from "../../../context/AuthContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 const Signup = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
-
+    const location = useLocation();
     const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', phone_number: '' });
@@ -18,6 +18,14 @@ const Signup = () => {
 
         if (user) {
             navigate('/dashboard/my-profile');
+        }
+
+
+        if (location.state) {
+            setFormData(prev => ({
+                ...prev,
+                ...location.state 
+            }));
         }
 
         const timer = setTimeout(() => {
@@ -33,7 +41,7 @@ const Signup = () => {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', formData);
             setError(-1);
             setErrorMsg('');
-            navigate('/otp', { state: { email: formData.email } }); 
+            navigate('/otp', { state: { email: formData.email } });
         } catch (err) {
             setError(1);
             setErrorMsg(err.response?.data?.message || "Something Went Wrong");

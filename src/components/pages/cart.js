@@ -7,12 +7,13 @@ import { useCart } from "../../context/CartContext";
 import { useCountry } from "../../context/CountryContext";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import defultImage from "../../external-assets/img/ifs-logo-3.png"
 
 const Cart = () => {
   const [loading, setLoading] = useState(true);
-  const { cart, setCart, removeFromCart, addToCart, updateCartItem, clearCart } = useCart(); // ✅ now using ALL
+  const { cart, setCart, removeFromCart, addToCart, updateCartItem, clearCart, syncGuestCartToUserCart } = useCart();
   const user = JSON.parse(localStorage.getItem("user"));
-  const { selectedCountryId } = useCountry();
+  const { selectedCountryId, currencySymbol } = useCountry();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   let { slug } = useParams();
@@ -49,7 +50,7 @@ const Cart = () => {
   }, [selectedCountryId]);
 
   const subtotal = cart.reduce((total, item) => {
-    const price = Number(item.price || 0); 
+    const price = Number(item.price || 0);
     return total + price * (Number(item.pieces) || 1);
   }, 0);
 
@@ -60,7 +61,7 @@ const Cart = () => {
     const updatedPieces = item.pieces + 1;
     updateCartItem(item._id, updatedPieces);
   };
-  
+
   const handleDecreasePieces = (item) => {
     if (item.pieces > 1) {
       const updatedPieces = item.pieces - 1;
@@ -122,15 +123,16 @@ const Cart = () => {
                         <td>
                           <div className="d-flex align-items-center">
                             <img
-                              src={`https://api.indiafoodshop.com${item.product_id.image}`}
+                              src={`https://api.indiafoodshop.com${item.product_details.image}` || `https://api.indiafoodshop.com${item.product_id.image}` }
                               className="img-fluid me-5 rounded-circle"
                               style={{ width: '80px', height: '80px' }}
                               alt={item.product_id.name}
                             />
+
                           </div>
                         </td>
-                        <td className="align-middle">{item.product_id.name}</td>
-                        <td className="align-middle">₹{priceNumber}</td>
+                        <td className="align-middle">{item.product_details.name || item.product_id.name}</td>
+                        <td className="align-middle">{currencySymbol}{priceNumber}</td>
                         <td className="align-middle">{item.quantity}</td>
                         <td className="align-middle">
                           <div className="input-group quantity" style={{ width: '120px' }}>
@@ -156,7 +158,7 @@ const Cart = () => {
                         </td>
 
                         <td className="align-middle">{item.status}</td>
-                        <td className="align-middle">₹{total}</td>
+                        <td className="align-middle">{currencySymbol}{total}</td>
                         <td className="align-middle">
                           <button
                             className="btn btn-md rounded-circle bg-light border"
@@ -191,7 +193,7 @@ const Cart = () => {
                     </div>
                     <div className="row g-4">
                       {Array.isArray(products) && products
-                        .filter(product => !cart.some(cartItem => cartItem.product_id._id === product._id))
+                        .filter(product => !cart.some(cartItem => cartItem.product_id?._id === product._id))
                         .slice(0, 4)
                         .map((product) => (
                           <div key={product._id} className="col-12 col-sm-6">
@@ -202,7 +204,7 @@ const Cart = () => {
                             >
                               <div className="fruite-img position-relative overflow-hidden" style={{ height: '250px' }}>
                                 <img
-                                  src={`https://api.indiafoodshop.com${product.image}`}
+                                  src={product.image ? `https://api.indiafoodshop.com${product.image}` : '/path/to/default-image.jpg'} // Fallback image
                                   className="img-fluid w-100 h-100 rounded-top"
                                   alt={product.name}
                                 />
@@ -220,7 +222,7 @@ const Cart = () => {
                                   <div className="text-dark mb-0">
                                     {product.prices && product.prices.map((price, idx) => (
                                       <p key={idx} className="text-dark fs-5 fw-bold mb-0">
-                                        ₹{price.price} / {price.quantity}
+                                        {currencySymbol}{price.price} / {price.quantity}
                                       </p>
                                     ))}
                                   </div>
@@ -247,25 +249,24 @@ const Cart = () => {
                       <h1 className="display-6 mb-4">Cart <span className="fw-normal">Total</span></h1>
                       <div className="d-flex justify-content-between mb-4">
                         <h5 className="mb-0 me-4">Subtotal:</h5>
-                        <p className="mb-0">₹{subtotal.toFixed(2)}</p>
+                        <p className="mb-0">{currencySymbol}{subtotal.toFixed(2)}</p>
                       </div>
                       <div className="d-flex justify-content-between">
                         <h5 className="mb-0 me-4">Shipping</h5>
                         <div className="">
-                          <p className="mb-0">Flat rate: ₹{shipping.toFixed(2)}</p>
+                          <p className="mb-0">Flat rate: {currencySymbol}{shipping.toFixed(2)}</p>
                         </div>
                       </div>
                       <p className="mb-0 text-end">Shipping to your address.</p>
                     </div>
                     <div className="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
                       <h5 className="mb-0 ps-4 me-4">Total</h5>
-                      <p className="mb-0 pe-4">₹{total.toFixed(2)}</p>
+                      <p className="mb-0 pe-4">{currencySymbol}{total.toFixed(2)}</p>
                     </div>
                     <div className="px-4 pb-4">
                       <button
                         className="btn border-secondary rounded-pill py-3 w-100 text-primary text-uppercase"
-                        onClick={() => navigate("/checkout")}
-                      >
+                        onClick={() => {navigate("/checkout");}}>
                         Proceed to Checkout
                       </button>
                     </div>

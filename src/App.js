@@ -40,7 +40,7 @@ function App() {
       <AuthProvider>
         <CountryProvider>
           <CartProvider>
-          <CartSyncHandler />
+            <CartSyncHandler />
             <Router>
               <ScrollManager />
               <Header />
@@ -50,21 +50,12 @@ function App() {
                 <Route path="/category/:id" element={<CategoryProductList />} />
                 <Route path="/products" element={<ProductList />} />
                 <Route path="/product/:slug" element={<ProductDetails />} />
-                <Route path="/cart" element={
-                  <ProtectedRoute>
-                    <Cart />
-                  </ProtectedRoute>
-                } />
+                <Route path="/cart" element={<Cart />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/otp" element={<OTP />} />
-
-                <Route path="/checkout" element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                } />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/order" element={<OrderPage />} />
                 <Route path="/order-tracking" element={<OrderTracking />} />
