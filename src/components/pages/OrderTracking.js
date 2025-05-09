@@ -15,6 +15,8 @@ const OrderTracking = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            console.log(response.data);
+            
             if (response.data.data) {
                 setTrackingOrders(response.data.data);
             }
@@ -72,8 +74,8 @@ const OrderTracking = () => {
                                             <tr>
                                                 <th>Order ID</th>
                                                 <th>Date</th>
-                                                <th>Product</th>
-                                                <th>Quantity</th>
+                                                <th>Items</th>
+                                                <th>Total Price</th>
                                                 <th>Location</th>
                                                 <th>Status</th>
                                                 <th>Payment</th>
@@ -81,21 +83,29 @@ const OrderTracking = () => {
                                         </thead>
 
                                         <tbody>
-                                            {trackingOrders.map(order =>
-                                                order.items.map((item, index) => (
-                                                    <tr key={`${order._id}-${index}`}>
+                                            {trackingOrders.map(order => {
+                                                const totalPrice = order.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+                                                return (
+                                                    <tr key={order._id}>
                                                         <td>#{order._id.slice(-6)}</td>
                                                         <td>{order.date_time}</td>
-                                                        <td>{item.product_name}</td>
-                                                        <td>{order.quantity}</td>
+                                                        <td>
+                                                            <ul className="list-unstyled mb-0">
+                                                                {order.items.map((item, index) => (
+                                                                    <li key={index}>
+                                                                        {item.product_name} ({item.quantity}) - ₹{item.price}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </td>
+                                                        <td>₹{totalPrice.toFixed(2)}</td>
                                                         <td>{order.location}</td>
                                                         <td>
                                                             <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
                                                                 order.order_status === 'Processing' ? 'bg-info' :
                                                                     order.order_status === 'Shipped' ? 'bg-primary' :
                                                                         order.order_status === 'Delivered' ? 'bg-success' :
-                                                                            'bg-secondary'
-                                                                }`}>
+                                                                            'bg-secondary'}`}>
                                                                 {order.order_status}
                                                             </span>
                                                         </td>
@@ -105,41 +115,56 @@ const OrderTracking = () => {
                                                             </span>
                                                         </td>
                                                     </tr>
-                                                ))
-                                            )}
+                                                );
+                                            })}
                                         </tbody>
-
                                     </table>
                                 </div>
 
                                 {/* Mobile cards view */}
                                 <div className="d-md-none">
-                                    {trackingOrders.map((order) => (
-                                        <div key={order._id} className="card mb-3 border">
-                                            <div className="card-body p-3">
-                                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h6 className="mb-0">#{order._id.slice(-6)}</h6>
-                                                    <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
-                                                        order.order_status === 'Processing' ? 'bg-info' :
-                                                            order.order_status === 'Shipped' ? 'bg-primary' :
-                                                                order.order_status === 'Delivered' ? 'bg-success' :
-                                                                    'bg-secondary'}`}>
-                                                        {order.order_status}
-                                                    </span>
-                                                </div>
-                                                <div className="small text-muted mb-2">{order.date_time}</div>
-                                                <div className="mb-2"><strong>Product:</strong> {order.product_name}</div>
-                                                <div className="mb-2"><strong>Location:</strong> {order.location}</div>
-                                                <div className="d-flex justify-content-between align-items-center">
-                                                    <span><strong>Payment:</strong></span>
-                                                    <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
-                                                        {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
-                                                    </span>
+                                    {trackingOrders.map((order) => {
+                                        const totalPrice = order.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+                                        return (
+                                            <div key={order._id} className="card mb-3 border">
+                                                <div className="card-body p-3">
+                                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                                        <h6 className="mb-0">#{order._id.slice(-6)}</h6>
+                                                        <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
+                                                            order.order_status === 'Processing' ? 'bg-info' :
+                                                                order.order_status === 'Shipped' ? 'bg-primary' :
+                                                                    order.order_status === 'Delivered' ? 'bg-success' :
+                                                                        'bg-secondary'}`}>
+                                                            {order.order_status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="small text-muted mb-2">{order.date_time}</div>
+                                                    <div className="mb-2">
+                                                        <strong>Items:</strong>
+                                                        <ul className="list-unstyled mb-0 mt-1">
+                                                            {order.items.map((item, index) => (
+                                                                <li key={index}>
+                                                                    {item.product_name} ({item.quantity}) - ₹{item.price}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                        <div className="mt-2">
+                                                            <strong>Total Price:</strong> ₹{totalPrice.toFixed(2)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="mb-2"><strong>Location:</strong> {order.location}</div>
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <span><strong>Payment:</strong></span>
+                                                        <span className={`badge ${order.is_paid === 'YES' ? 'bg-success' : 'bg-danger'}`}>
+                                                            {order.is_paid === 'YES' ? 'Paid' : 'Unpaid'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
+
 
                                 {trackingOrders.length === 0 && (
                                     <div className="text-center py-4">
