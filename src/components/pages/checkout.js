@@ -9,6 +9,7 @@ import axios from 'axios';
 import { useAuth } from "../../context/AuthContext";
 import defultImage from "../../external-assets/img/ifs-logo-3.png"
 import { toast } from 'react-toastify';
+import { isEqual } from 'lodash';
 
 const Checkout = () => {
     const { cart, clearCart } = useCart();
@@ -47,6 +48,7 @@ const Checkout = () => {
     });
 
     const handleInputChange = (e) => {
+        console.log('Changing:', e.target.name, e.target.value); // Debug log
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -68,21 +70,24 @@ const Checkout = () => {
     }, []);
 
     useEffect(() => {
-        if (user) {
-            setFormData(prev => ({
-                ...prev,
-                firstName: user.name?.split(" ")[0] || '',
-                lastName: user.name?.split(" ")[1] || '',
-                email: user.email || '',
-                mobile: user.phone_number || '',
-                address: user.address || '',
-                townCity: user.city || '',
-                state: user.state || '',
-                country: user.country || '',
-                postcode: user.zip_code || ''
-            }));
-        }
-    }, [user]);
+    if (user) {
+        const userData = {
+            firstName: user.name || '',
+            email: user.email || '',
+            mobile: user.phone_number || '',
+            address: user.address || '',
+            townCity: user.city || '',
+            state: user.state || '',
+            country: user.country || '',
+            postcode: user.zip_code || ''
+        };
+
+        setFormData(prev => ({
+            ...prev,
+            ...userData
+        }));
+    }
+}, [user?.id]); 
 
     const handleCouponSubmit = async (e) => {
         e.preventDefault();
@@ -144,7 +149,7 @@ const Checkout = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!formData.firstName || !formData.lastName || !formData.mobile || !formData.email || !formData.address ||
+        if (!formData.firstName || !formData.mobile || !formData.email || !formData.address ||
             !formData.townCity || !formData.country || !formData.postcode || !formData.state) {
             toast.error('Please fill in all required fields.');
             return;
@@ -202,8 +207,8 @@ const Checkout = () => {
                         if (verificationResponse.data.success) {
                             toast.success('Payment successful! Your order has been placed.');
                             clearCart()
-                           setTimeout (() => {
-                            navigate('/order');
+                            setTimeout(() => {
+                                navigate('/order');
                             }, 6000);
                         } else {
                             toast.error('Payment verification failed. Please contact support.');
@@ -261,7 +266,7 @@ const Checkout = () => {
 
         try {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', signupPayload);
-           toast.success("OTP sent to your email");
+            toast.success("OTP sent to your email");
             setOtpSent(true);
         } catch (err) {
             toast.error(err.response?.data?.message || "Signup failed");
@@ -337,7 +342,7 @@ const Checkout = () => {
                                         type="text"
                                         className="form-control py-2"
                                         name="firstName"
-                                        value={formData.firstName}
+                                        value={formData.firstName || ''}
                                         onChange={handleInputChange}
                                         required
                                         style={{ borderRadius: "8px" }}

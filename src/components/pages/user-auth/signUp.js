@@ -26,7 +26,7 @@ const Signup = () => {
         if (location.state) {
             setFormData(prev => ({
                 ...prev,
-                ...location.state 
+                ...location.state
             }));
         }
 
@@ -48,7 +48,7 @@ const Signup = () => {
         } catch (err) {
             setError(1);
             toast.error(err);
-            
+
             setErrorMsg(err.response?.data?.message || "Something Went Wrong");
         }
     };
@@ -64,8 +64,7 @@ const Signup = () => {
     };
 
     return (
-        <>
-
+        <>   
             {/* <!-- Signup Form --> */}
             <div class="tab-pane fade" id="pills-signup" role="tabpanel" aria-labelledby="pills-signup-tab">
                 <div class="card">
