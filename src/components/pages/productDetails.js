@@ -12,6 +12,7 @@ import Reviews from "./order/reviews";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useCountry } from "../../context/CountryContext";
+import FAQ from "./FAQ";
 
 const ProductDetails = () => {
     const { addToCart } = useCart();
@@ -167,7 +168,7 @@ const ProductDetails = () => {
 
                                     {/* Add to Cart Button */}
                                     <button
-                                        className="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary"
+                                        className="btn border border-secondary rounded-pill px-4 mb-4 text-primary"
                                         onClick={handleAddToCart}
                                     >
                                         <i className="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
@@ -227,6 +228,9 @@ const ProductDetails = () => {
                                 </div>
                             </div>
                         </div>
+                    <div>
+                        <FAQ />
+                    </div>
                     </div>
                 </div>
             </div>
