@@ -38,7 +38,14 @@ const ProductDetails = () => {
         addToCart(productDetails, selectedCountryId, selectedPriceIndex, quantity);
     };
 
-    
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
@@ -77,7 +84,9 @@ const ProductDetails = () => {
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
                 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
-
+            {
+                loading ? <Spinner /> : ''
+            }
             <SearchModel />
 
             <div className="container-fluid page-header py-5">
@@ -228,9 +237,9 @@ const ProductDetails = () => {
                                 </div>
                             </div>
                         </div>
-                    <div>
-                        <FAQ />
-                    </div>
+                        <div>
+                            <FAQ />
+                        </div>
                     </div>
                 </div>
             </div>

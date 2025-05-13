@@ -94,7 +94,6 @@ const OrderPage = () => {
                                             </thead>
                                             <tbody>
                                                 {orders.map(order => {
-                                                    const totalPrice = order.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
                                                     return (
                                                         <tr key={order._id}>
                                                             <td>#{order.order_no}</td>
@@ -108,7 +107,7 @@ const OrderPage = () => {
                                                                     ))}
                                                                 </ul>
                                                             </td>
-                                                            <td>₹{totalPrice.toFixed(2)}</td>
+                                                            <td>{order.amount}</td>
                                                             <td>
                                                                 <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :
                                                                         order.order_status === 'Processing' ? 'bg-info' :

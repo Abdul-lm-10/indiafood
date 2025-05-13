@@ -98,7 +98,7 @@ const OrderTracking = () => {
                                                                 ))}
                                                             </ul>
                                                         </td>
-                                                        <td>₹{totalPrice.toFixed(2)}</td>
+                                                           <td>{order.amount}</td>
                                                         <td>{order.location}</td>
                                                         <td>
                                                             <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :

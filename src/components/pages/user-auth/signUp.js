@@ -13,7 +13,7 @@ const Signup = () => {
     const location = useLocation();
     const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', phone_number: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', phone_number: '', confirmPassword: '', });
     // console.log(formData);
 
     useEffect(() => {
@@ -39,6 +39,14 @@ const Signup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.password !== formData.confirmPassword) {
+            setError(1);
+            setErrorMsg("Passwords do not match");
+            toast.error("Passwords do not match");
+            return;
+        }
+
         try {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', formData);
             toast.success("OTP Sent Successfully");
@@ -47,8 +55,7 @@ const Signup = () => {
             navigate('/otp', { state: { email: formData.email } });
         } catch (err) {
             setError(1);
-            toast.error(err);
-
+            toast.error(err.response?.data?.message || "Something Went Wrong");
             setErrorMsg(err.response?.data?.message || "Something Went Wrong");
         }
     };
@@ -64,7 +71,7 @@ const Signup = () => {
     };
 
     return (
-        <>   
+        <>
             {/* <!-- Signup Form --> */}
             <div class="tab-pane fade" id="pills-signup" role="tabpanel" aria-labelledby="pills-signup-tab">
                 <div class="card">
@@ -106,6 +113,18 @@ const Signup = () => {
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" class="form-control" id="password" placeholder="Enter your password" onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
                             </div>
+                            <div className="mb-3">
+                                <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    id="confirmPassword"
+                                    placeholder="Re-enter your password"
+                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                    required
+                                />
+                            </div>
+
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-success">Signup</button>
                             </div>

@@ -4,13 +4,13 @@ import { AuthContext } from "../../../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify";
 
-const Login = () =>{
+const Login = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
-    const { user,login } = useContext(AuthContext);
+    const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ email: '', password: ''});
+    const [formData, setFormData] = useState({ email: '', password: '' });
 
     // console.log(formData);
     useEffect(() => {
@@ -18,11 +18,11 @@ const Login = () =>{
         if (user) {
             navigate('/dashboard/my-profile');
         }
-        
+
         const timer = setTimeout(() => {
-          setLoading(false); 
+            setLoading(false);
         }, 500);
-    
+
         return () => clearTimeout(timer);
     }, [user, navigate]);
 
@@ -35,50 +35,68 @@ const Login = () =>{
             setErrorMsg('');
             toast.success("Login Successful");
             login(res.data.token, res.data.user);
-            navigate('/dashboard/my-profile');
-        } catch (err) { 
-            if(err.response.data.message && err.response.data.message!=''){
+            navigate('/cart');
+        } catch (err) {
+            if (err.response.data.message && err.response.data.message != '') {
                 setError(1);
                 setErrorMsg(err.response.data.message);
                 toast.error(err);
-            }else{
+            } else {
                 setError(1);
                 setErrorMsg("Something Went Wrong");
-            }         
+            }
         }
     };
 
+
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('https://api.indiafoodshop.com/api/auth/v1/forgot-password', { email: formData.email });
+            sessionStorage.setItem('resetEmail', formData.email);
+            toast.success('OTP sent to your email');
+            navigate('/verify-reset-otp', { state: { email: formData.email } });
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Something went wrong');
+        }
+    };
+
+
     return (
         <>
-
             {/* <!-- Login Form --> */}
             <div class="tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="pills-login-tab">
                 <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Login</h3>
-                    {
-                            error==1 ? 
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <strong>Error!</strong> {errorMsg}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                            :
-                            ''
+                    <div class="card-body">
+                        <h3 class="card-title text-center mb-4">Login</h3>
+                        {
+                            error == 1 ?
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Error!</strong> {errorMsg}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                :
+                                ''
                         }
-                    <form onSubmit={handleSubmit}>
-                    <div class="mb-3">
-                        <label for="loginEmail" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                        <form onSubmit={handleSubmit}>
+                            <div class="mb-3">
+                                <label for="loginEmail" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn-success btn">Login</button>
+                            </div>
+                        </form>
+
+                        <div className="text-end my-3">
+                            <small>
+                                <a onClick={(e) => { e.preventDefault(); handleForgotPassword(e); }}>Forgot Password?</a>                             </small>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="loginPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn-success btn">Login</button>
-                    </div>
-                    </form>
-                </div>
                 </div>
             </div>
 

@@ -1,103 +1,127 @@
 [
-    {
-      "id": 1,
-      "question": "Why does one have to switch to organic food?",
-      "answer": "There is research-driven evidence that organic foods are healthier and more nutritious, as compared to their counterparts."
-    },
-    {
-      "id": 2,
-      "question": "Is switching to organic worth it?",
-      "answer": "Yes, organic foods are clearly healthier."
-    },
-    {
-      "id": 3,
-      "question": "Does organic food really make a difference?",
-      "answer": "Organic diets we know lead to less pesticide and antibiotic exposure."
-    },
-    {
-      "id": 4,
-      "question": "Does buying organic matter?",
-      "answer": "Yes. It matters both for your individual health and the health of the planet."
-    },
-    {
-      "id": 5,
-      "question": "Why organic food is expensive?",
-      "answer": "In case of organic crops the risk of contamination by chemical fertilizers, pesticides, etc. from water, neighbouring farms is high."
-    },
-    {
-      "id": 6,
-      "question": "Is organic better than non-organic?",
-      "answer": "Yes, organic foods contain more nutrients."
-    },
-    {
-      "id": 7,
-      "question": "Do organic foods taste better?",
-      "answer": "Organic products taste the same as conventionally grown products. But people who eat more organic foods are comparatively more inclined to say they taste better."
-    },
-    {
-      "id": 8,
-      "question": "Why do organic foods spoil faster?",
-      "answer": "Because they don't contain preservatives."
-    },
-    {
-      "id": 9,
-      "question": "Does organic actually mean anything?",
-      "answer": "Products can be called organic if it's certified to have grown on soil that had no prohibited substances applied for three years prior to harvest."
-    },
-    {
-      "id": 10,
-      "question": "Do consumers prefer organic food?",
-      "answer": "The majority of consumers believe that organic food is eco-friendly, healthier, cleaner, more nutritious, tastier, and safer as compared to conventional food."
-    },
-    {
-      "id": 11,
-      "question": "How do I make a payment using the EMI credit card option?",
-      "answer": "EMI Option Presently not available. We will notify you once the service is enabled."
-    },
-    {
-      "id": 12,
-      "question": "My transaction failed but my money was deducted from my account. What should I do?",
-      "answer": "The money will be reversed to your bank account instantly. You can check your bank balance for confirmation."
-    },
-    {
-      "id": 13,
-      "question": "What is IndiaFoodShop?",
-      "answer": "IndiaFoodShop is an online organic products supplier. Currently we have six categories. All our products are naturally grown, pesticide free and are directly procured from the farmers."
-    },
-    {
-      "id": 14,
-      "question": "How do I place an order?",
-      "answer": "Sign in to your IndiaFoodShop account. Hover over Departments and click on a category. Review the item, and click Add to Cart. Click Proceed to Checkout. Enter a shipping address and click Continue. Choose a payment method and click Continue. Click Place Your Order."
-    },
-    {
-      "id": 15,
-      "question": "In case of wrong address is given what I have to do further?",
-      "answer": "No worries, you can contact the customer service for the change of the address. But make sure you correct them before it could be dispatched."
-    },
-    {
-      "id": 16,
-      "question": "How many will you take to deliver my product?",
-      "answer": "Within 5-7 working days."
-    },
-    {
-      "id": 17,
-      "question": "What if my product's package is damaged or expired?",
-      "answer": "If the customer wishes we would return and replace it or else the bill will be refunded."
-    },
-    {
-      "id": 18,
-      "question": "How are products packed?",
-      "answer": "The products are packed in a food safe seal."
-    },
-    {
-      "id": 19,
-      "question": "The order status is delivered but I have not received it. What should I do?",
-      "answer": "Ask your family members, friends or neighbors whether they have received your package. If not then contact us and we will try to get the order back to you."
-    },
-    {
-      "id": 20,
-      "question": "Can I cancel my replacement request?",
-      "answer": "It will be great if you decide not to replace your order. You can do it any time before any courier representative picks up the package. If the courier representative already took the package then contact us and we will try to get the order back to you."
-    }
-  ]
-  
+  {
+    "id": 1,
+    "question": "How do you ensure the purity of your products?",
+    "answer": "We purchase the products from our local farmers, send sample testing to  and then decide the quality based on results. Is there any metric we can mention that we use to assure purity."
+  },
+  {
+    "id": 2,
+    "question": "How many days do you take to deliver? ",
+    "answer": "We usually take 3 to 5 business days to deliver to any Indian address. If we take more time, we’ll keep you informed."
+  },
+  {
+    "id": 3,
+    "question": "What are the available payment methods?",
+    "answer": "We accept any debit and credit cards, UPI payment, and net banking. For more details on payment, Whatsapp us at +91 80980 44400 or write to us at cc@indiafoodshop.com."
+  },
+  {
+    "id": 4,
+    "question": "What if my payment has failed?",
+    "answer": "If your money is debited from your account, it will be refunded to your account."
+  },
+  {
+    "id": 5,
+    "question": "Will I be notified when you ship my order? ",
+    "answer": "Yes, we will send you a shipping confirmation to your registered email along with a tracking number and link to track your package. If you didn’t receive our email, we suggest that you check your spam folder. If you don’t find it even there, contact us, and we’ll help you."
+  },
+  {
+    "id": 6,
+    "question": "Why does one have to switch to organic food?",
+    "answer": "There is research-driven evidence that organic foods are healthier and more nutritious, as compared to their counterparts."
+  },
+  {
+    "id": 7,
+    "question": "Is switching to organic worth it?",
+    "answer": "Yes, organic foods are clearly healthier."
+  },
+  {
+    "id": 8,
+    "question": "Does organic food really make a difference?",
+    "answer": "Organic diets we know lead to less pesticide and antibiotic exposure."
+  },
+  {
+    "id": 9,
+    "question": "Does buying organic matter?",
+    "answer": "Yes. It matters both for your individual health and the health of the planet."
+  },
+  {
+    "id": 10,
+    "question": "Why organic food is expensive?",
+    "answer": "In case of organic crops the risk of contamination by chemical fertilizers, pesticides, etc. from water, neighbouring farms is high."
+  },
+  {
+    "id": 11,
+    "question": "Is organic better than non-organic?",
+    "answer": "Yes, organic foods contain more nutrients."
+  },
+  {
+    "id": 12,
+    "question": "Do organic foods taste better?",
+    "answer": "Organic products taste the same as conventionally grown products. But people who eat more organic foods are comparatively more inclined to say they taste better."
+  },
+  {
+    "id": 13,
+    "question": "Why do organic foods spoil faster?",
+    "answer": "Because they don't contain preservatives."
+  },
+  {
+    "id": 14,
+    "question": "Does organic actually mean anything?",
+    "answer": "Products can be called organic if it's certified to have grown on soil that had no prohibited substances applied for three years prior to harvest."
+  },
+  {
+    "id": 15,
+    "question": "Do consumers prefer organic food?",
+    "answer": "The majority of consumers believe that organic food is eco-friendly, healthier, cleaner, more nutritious, tastier, and safer as compared to conventional food."
+  },
+  {
+    "id": 16,
+    "question": "How do I make a payment using the EMI credit card option?",
+    "answer": "EMI Option Presently not available. We will notify you once the service is enabled."
+  },
+  {
+    "id": 17,
+    "question": "My transaction failed but my money was deducted from my account. What should I do?",
+    "answer": "The money will be reversed to your bank account instantly. You can check your bank balance for confirmation."
+  },
+  {
+    "id": 18,
+    "question": "What is IndiaFoodShop?",
+    "answer": "IndiaFoodShop is an online organic products supplier. Currently we have six categories. All our products are naturally grown, pesticide free and are directly procured from the farmers."
+  },
+  {
+    "id": 19,
+    "question": "How do I place an order?",
+    "answer": "Sign in to your IndiaFoodShop account. Hover over Departments and click on a category. Review the item, and click Add to Cart. Click Proceed to Checkout. Enter a shipping address and click Continue. Choose a payment method and click Continue. Click Place Your Order."
+  },
+  {
+    "id": 20,
+    "question": "In case of wrong address is given what I have to do further?",
+    "answer": "No worries, you can contact the customer service for the change of the address. But make sure you correct them before it could be dispatched."
+  },
+  {
+    "id": 21,
+    "question": "How many will you take to deliver my product?",
+    "answer": "Within 5-7 working days."
+  },
+  {
+    "id": 22,
+    "question": "What if my product's package is damaged or expired?",
+    "answer": "If the customer wishes we would return and replace it or else the bill will be refunded."
+  },
+  {
+    "id": 23,
+    "question": "How are products packed?",
+    "answer": "The products are packed in a food safe seal."
+  },
+  {
+    "id": 24,
+    "question": "The order status is delivered but I have not received it. What should I do?",
+    "answer": "Ask your family members, friends or neighbors whether they have received your package. If not then contact us and we will try to get the order back to you."
+  },
+  {
+    "id": 25,
+    "question": "Can I cancel my replacement request?",
+    "answer": "It will be great if you decide not to replace your order. You can do it any time before any courier representative picks up the package. If the courier representative already took the package then contact us and we will try to get the order back to you."
+  }
+]

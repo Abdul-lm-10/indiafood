@@ -1,27 +1,26 @@
-// components/CartSyncHandler.js
-import { useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useEffect } from 'react';
+import { useCountry } from '../context/CountryContext';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext'; // ✅ import useAuth
 
 const CartSyncHandler = () => {
-  const { user } = useAuth();
-  const { addToCart } = useCart();
+  const { selectedCountryId } = useCountry();
+  const { updateGuestCartPrices, updateUserCartPrices } = useCart(); // ✅ include both
+  const { user } = useAuth(); // ✅ check if user is logged in
 
   useEffect(() => {
-    const syncGuestCart = async () => {
-      if (user && user._id) {
-        const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
-        // for (const item of guestCart) {
-        //   await addToCart(item.product, item.selectedCountryId, item.selectedPriceIndex, item.quantity);
-        // }
-        // localStorage.removeItem("guestCart");
+    if (user) {
+      if (typeof updateUserCartPrices === 'function') {
+        updateUserCartPrices();
       }
-    };
+    } else {
+      if (typeof updateGuestCartPrices === 'function') {
+        updateGuestCartPrices();
+      }
+    }
+  }, [selectedCountryId, user]);
 
-    syncGuestCart();
-  }, [user]);
-
-  return null; 
+  return null;
 };
 
 export default CartSyncHandler;

@@ -75,20 +75,20 @@ const OTP = () => {
         }
     };
 
-    const handleResend = async () => {
-        const otpString = otp.join('');
+     const handleResend = async () => {
         try {
-            const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/verify-otp', {
-                email,
-                otp: otpString
-            }); setTimer(30);
+            await axios.post('https://api.indiafoodshop.com/api/auth/v1/resend-otp', {
+                email
+            });
+
+            setTimer(30);
             setCanResend(false);
             setOtp(['', '', '', '', '', '']);
             toast.success('OTP resent successfully');
             refs[0].current.focus();
         } catch (err) {
             setError('Failed to resend OTP');
-            toast.error('Failed to resend OTP');
+            toast.error(err.response?.data?.message || 'Failed to resend OTP');
         }
     };
 
@@ -110,12 +110,12 @@ const OTP = () => {
             console.log(res.data);
             toast.success('OTP verified successfully');
             login(res.data.token, res.data.user);
-            navigate('/dashboard/my-profile');
+            navigate('/cart');
         } catch (err) {
             toast.error('Invalid OTP');
             setError(err.response?.data?.message || 'Invalid OTP');
         }
-    };
+    };   
 
     return (
         <>

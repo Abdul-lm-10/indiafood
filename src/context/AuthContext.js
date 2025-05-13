@@ -38,7 +38,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(user));
     setToken(token);
     setUser(user); 
-    toast.success('Login successful');
   };
 
   // Logout function to clear token and user data

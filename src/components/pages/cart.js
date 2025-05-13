@@ -55,8 +55,10 @@ const Cart = () => {
     return total + price * (Number(item.pieces) || 1);
   }, 0);
 
-  const shipping = cart.length ? 33.90 : 0;
-  const total = subtotal + shipping;
+const shipping = cart.reduce((total, item) => {
+  return total + parseFloat(item.shipping_charge || 0);
+}, 0);
+const total = subtotal + shipping;
 
   const handleIncreasePieces = (item) => {
     const updatedPieces = item.pieces + 1;

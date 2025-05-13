@@ -30,6 +30,9 @@ import OrderTracking from './components/pages/OrderTracking';
 import CartSyncHandler from './utils/CartSyncHandler';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ForgotPassword from './components/pages/user-auth/forgotPassword';
+import VerifyResetOtp from './components/pages/user-auth/verifyResetOtp';
+import ResetPassword from './components/pages/user-auth/resetPassword';
 
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -76,6 +79,9 @@ function App() {
                       <UserDetails />
                     </ProtectedRoute>} />
                 <Route path="/logout" element={<Logout />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify-reset-otp" element={<VerifyResetOtp />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>

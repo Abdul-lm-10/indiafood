@@ -78,6 +78,7 @@ export const CartProvider = ({ children }) => {
         product_id: product._id || product.product_id,
         quantity: selectedPrice.quantity,
         price: selectedPrice.price,
+        shipping_charge: selectedPrice.shipping_charge || 0,
         country_id: selectedCountryId,
         pieces: quantity,
         status: "Active",
@@ -109,6 +110,7 @@ export const CartProvider = ({ children }) => {
         user_id: user._id,
         quantity: selectedPrice.quantity,
         price: selectedPrice.price,
+        shipping_charge: selectedPrice.shipping_charge || 0,
         country_id: selectedCountryId,
         pieces: quantity,
         product_name: product.name || "",
@@ -120,6 +122,7 @@ export const CartProvider = ({ children }) => {
       };
 
       await axios.post(`https://api.indiafoodshop.com/api/auth/v1/cart`, payload);
+      toast.success("Added to cart successfully");
       fetchCart();
     } catch (err) {
       toast.error("Failed to add to cart:", err.response?.data || err.message);
@@ -167,6 +170,7 @@ const mergeGuestCartToUserCart = async () => {
             user_id: user._id,
             quantity: item.quantity,
             price: item.price,
+            shipping_charge: item.shipping_charge || 0,
             country_id: item.country_id || selectedCountryId,
             pieces: item.pieces,
             product_name: item.product_details?.name || '',
@@ -230,6 +234,93 @@ const mergeGuestCartToUserCart = async () => {
   };
 
 
+const updateGuestCartPrices = async () => {
+  if (user) return;
+
+  const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+  if (!guestCart.length) return;
+
+  try {
+    const res = await axios.get(
+      `https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`
+    );
+
+    const products = res.data;
+
+    const updatedCart = guestCart.map((item) => {
+      const product = products.find(p => p._id === item.product_id);
+
+      if (!product || !Array.isArray(product.prices)) return item;
+
+      // Pick the first price object as fallback
+      const priceObj = product.prices[0];
+
+      return {
+        ...item,
+        price: priceObj?.price ?? item.price,
+        shipping_charge: priceObj?.shipping_charge ?? item.shipping_charge,
+        quantity: priceObj?.quantity ?? item.quantity,
+        country_id: selectedCountryId,
+        product_details: {
+          ...item.product_details,
+          prices: product.prices
+        }
+      };
+    });
+
+    localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+    setCart(updatedCart);
+  } catch (err) {
+    console.error("Failed to fetch products by country:", err);
+  }
+};
+
+
+const updateUserCartPrices = async () => {
+  if (!user) return;
+
+  try {
+    const cartRes = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/cart`);
+    const userCart = cartRes.data?.data || [];
+
+    const productRes = await axios.get(
+      `https://api.indiafoodshop.com/admin/products-by-country?country_id=${selectedCountryId}`
+    );
+    const products = productRes.data;
+
+    // Update each cart item
+    await Promise.all(
+      userCart.map(async (item) => {
+        const productId = item.product_id?._id || item.product_id;
+
+        const matchingProduct = products.find(p => p._id === productId);
+        if (!matchingProduct || !Array.isArray(matchingProduct.prices)) return;
+
+        const priceObj = matchingProduct.prices[0]; // default price object
+
+        try {
+          await axios.put(`https://api.indiafoodshop.com/api/auth/v1/cart/${item._id}`, {
+            pieces: item.pieces,
+            country_id: selectedCountryId,
+            price: priceObj.price,
+            shipping_charge: priceObj.shipping_charge,
+            quantity: priceObj.quantity
+          });
+        } catch (err) {
+          console.error(`Failed to update cart item: ${item._id}`, err);
+        }
+      })
+    );
+
+    // Refresh the cart
+    fetchCart();
+  } catch (err) {
+    console.error("Error updating user cart prices:", err);
+  }
+};
+
+
+
   const removeFromCart = async (cartItemId) => {
     if (!user) {
       const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
@@ -272,7 +363,7 @@ const mergeGuestCartToUserCart = async () => {
 
 
   return (
-    <CartContext.Provider value={{ cart, setCart, addToCart, updateCartItem, removeFromCart, clearCart, mergeGuestCartToUserCart }}>
+    <CartContext.Provider value={{ cart, setCart, addToCart, updateCartItem, removeFromCart, clearCart, mergeGuestCartToUserCart, updateGuestCartPrices, updateUserCartPrices }}>
       {children}
     </CartContext.Provider>
   );

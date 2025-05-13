@@ -15,7 +15,7 @@ const Checkout = () => {
     const { cart, clearCart } = useCart();
     const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
-    const { currencySymbol } = useCountry();
+    const { currencySymbol, countryCode } = useCountry();
     const [loading, setLoading] = useState(true);
     const [couponCode, setCouponCode] = useState('');
     const [couponDiscount, setCouponDiscount] = useState(0);
@@ -47,14 +47,26 @@ const Checkout = () => {
         password: ''
     });
 
+    const cleanMobile = (formData.mobile || user?.phone_number || '').replace(/^\+\d+\s*|[^\d]/g, '');
+
     const handleInputChange = (e) => {
-        console.log('Changing:', e.target.name, e.target.value); // Debug log
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+
+        if (name === "mobile") {
+            const digitsOnly = value.replace(/[^\d]/g, '');
+            const formatted = digitsOnly ? `${countryCode} ${digitsOnly}` : '';
+            setFormData(prev => ({
+                ...prev,
+                mobile: formatted
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
+
 
     useEffect(() => {
         setTimeout(() => {
@@ -70,24 +82,25 @@ const Checkout = () => {
     }, []);
 
     useEffect(() => {
-    if (user) {
-        const userData = {
-            firstName: user.name || '',
-            email: user.email || '',
-            mobile: user.phone_number || '',
-            address: user.address || '',
-            townCity: user.city || '',
-            state: user.state || '',
-            country: user.country || '',
-            postcode: user.zip_code || ''
-        };
+        if (user) {
+            const cleanNumber = user.phone_number?.replace(/^\+\d+\s*|[^\d]/g, '') || '';
+            const userData = {
+                firstName: user.name || '',
+                email: user.email || '',
+                mobile: cleanNumber ? `${countryCode} ${cleanNumber}` : '',
+                address: user.address || '',
+                townCity: user.city || '',
+                state: user.state || '',
+                country: user.country || '',
+                postcode: user.zip_code || ''
+            };
 
-        setFormData(prev => ({
-            ...prev,
-            ...userData
-        }));
-    }
-}, [user?.id]); 
+            setFormData(prev => ({
+                ...prev,
+                ...userData
+            }));
+        }
+    }, [user?.id]);
 
     const handleCouponSubmit = async (e) => {
         e.preventDefault();
@@ -122,17 +135,24 @@ const Checkout = () => {
         }
     };
 
+    const shipping_charge = cart.reduce((total, item) => { return total + Number(item.shipping_charge || 0); }, 0);
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces) + Number(item.shipping_charge || 0), 0);
+    const discountAmount = (subtotal * couponDiscount) / 100;
+    const total = subtotal - discountAmount;
+
 
     const orderPayload = {
         user_id: user ? user._id : null,
-        location: formData.address,
-        name: formData.firstName,
-        city: formData.townCity,
-        state: formData.state,
-        country: formData.country,
-        zip_code: formData.postcode,
-        email: formData.email,
-        phone_number: formData.mobile,
+        location: formData.address || user?.address,
+        name: formData.firstName || user?.name,
+        city: formData.townCity || user?.city,
+        state: formData.state || user?.state,
+        country: formData.country || user?.country,
+        zip_code: formData.postcode || user?.zip_code,
+        email: formData.email || user?.email,
+        amount: total,
+        notes: formData.orderNotes || '',
+         phone_number: formData.mobile || user?.phone_number, 
         items: cart.map(item => ({
             cart_id: item._id || item.product_id,
             product_id: user ? item.product_id._id : item.product_id,
@@ -144,6 +164,7 @@ const Checkout = () => {
                 : item.product_details?.name || "",
             quantity: item.quantity,
             price: item.price,
+            shipping_charge: item.shipping_charge || 0,
             pieces: item.pieces || 0
         }))
     };
@@ -288,10 +309,6 @@ const Checkout = () => {
         }
     };
 
-
-    const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces), 0);
-    const discountAmount = (subtotal * couponDiscount) / 100;
-    const total = subtotal - discountAmount;
 
     return (
         <>
@@ -620,10 +637,14 @@ const Checkout = () => {
                                     <span>Subtotal:</span>
                                     <span>{currencySymbol}{(subtotal).toFixed(2)}</span>
                                 </div>
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span>Shipping:</span>
+                                    <span>{currencySymbol}{shipping_charge}</span>
+                                </div>
                                 {couponDiscount > 0 && (
                                     <div className="d-flex justify-content-between mb-2 text-success">
                                         <span>Coupon Discount:</span>
-                                        <span>-{currencySymbol}{discountAmount}</span>
+                                        <span>-{currencySymbol}{(discountAmount)}</span>
                                     </div>
                                 )}
                                 <div className="d-flex justify-content-between mb-3 pt-2 border-top">
