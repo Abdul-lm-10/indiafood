@@ -9,7 +9,6 @@ import axios from 'axios';
 import { useAuth } from "../../context/AuthContext";
 import defultImage from "../../external-assets/img/ifs-logo-3.png"
 import { toast } from 'react-toastify';
-import { isEqual } from 'lodash';
 
 const Checkout = () => {
     const { cart, clearCart } = useCart();
@@ -27,6 +26,9 @@ const Checkout = () => {
     const [otpVerified, setOtpVerified] = useState(false);
     const { login } = useAuth();
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [addressList, setAddressList] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
+
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -69,6 +71,14 @@ const Checkout = () => {
 
 
     useEffect(() => {
+        if (user) {
+        fetchAddresses(user?._id);
+        } else {    
+           setFormData(prev => ({
+            ...prev,
+            differentAddress: true 
+        }));
+        }
         setTimeout(() => {
             setLoading(false);
         }, 1500);
@@ -101,6 +111,45 @@ const Checkout = () => {
             }));
         }
     }, [user?.id]);
+
+    const fetchAddresses = async (userId) => {
+        try {
+            const res = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/delivery-address`, {
+                params: { userId }
+            });
+
+            const addresses = res.data.addresses || [];
+            setAddressList(addresses);
+
+            // Find the default address
+            const defaultAddr = addresses.find(addr => addr.isDefault);
+
+            if (defaultAddr) {
+                setSelectedAddressId(defaultAddr._id);
+            } else if (addresses.length > 0) {
+                setSelectedAddressId(addresses[0]._id);
+            }
+
+        } catch (err) {
+            console.error("Error fetching addresses:", err);
+        }
+    };
+
+    const handleAddAddress = async (userId) => {
+
+            try {
+                const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/delivery-address', {
+                    ...deliveryPayload, userId: userId || user._id 
+                });
+
+                const savedAddress = res.data.address;
+
+                setAddressList(prev => [...prev, savedAddress]);
+                setSelectedAddressId(savedAddress._id);
+            } catch (err) {
+                console.error("Failed to add address:", err);
+            }
+    };
 
     const handleCouponSubmit = async (e) => {
         e.preventDefault();
@@ -139,20 +188,29 @@ const Checkout = () => {
     const subtotal = cart.reduce((total, item) => total + (item.price * item.pieces) + Number(item.shipping_charge || 0), 0);
     const discountAmount = (subtotal * couponDiscount) / 100;
     const total = subtotal - discountAmount;
+    const selectedDeliveryAddress = addressList.find(addr => addr._id === selectedAddressId);
 
+    const deliveryPayload = {
+        address: formData.address,
+        city: formData.townCity,
+        state: formData.state,
+        country: formData.country,
+        zip_code: formData.postcode,
+        isDefault: false
+    }
 
     const orderPayload = {
         user_id: user ? user._id : null,
-        location: formData.address || user?.address,
+        location: !formData.differentAddress ?  selectedDeliveryAddress?.address : formData.address,
         name: formData.firstName || user?.name,
-        city: formData.townCity || user?.city,
-        state: formData.state || user?.state,
-        country: formData.country || user?.country,
-        zip_code: formData.postcode || user?.zip_code,
+        city: !formData.differentAddress ? selectedDeliveryAddress?.city : formData.townCity,
+        state:!formData.differentAddress ? selectedDeliveryAddress?.state : formData.state,
+        country: !formData.differentAddress ? selectedDeliveryAddress?.country : formData.country,
+        zip_code: !formData.differentAddress ? selectedDeliveryAddress?.zip_code : formData.postcode,
         email: formData.email || user?.email,
         amount: total,
         notes: formData.orderNotes || '',
-         phone_number: formData.mobile || user?.phone_number, 
+        phone_number: formData.mobile || user?.phone_number,
         items: cart.map(item => ({
             cart_id: item._id || item.product_id,
             product_id: user ? item.product_id._id : item.product_id,
@@ -170,12 +228,14 @@ const Checkout = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!formData.firstName || !formData.mobile || !formData.email || !formData.address ||
-            !formData.townCity || !formData.country || !formData.postcode || !formData.state) {
+        if (!formData.firstName || !formData.mobile || !formData.email) {
             toast.error('Please fill in all required fields.');
             return;
         }
 
+        if (formData.differentAddress) {
+            handleAddAddress(user?._id);
+        }
         try {
             let userIdToSend = user ? user._id : null;
 
@@ -242,7 +302,7 @@ const Checkout = () => {
                 prefill: {
                     name: `${formData.firstName} ${formData.lastName}`,
                     email: formData.email,
-                    contact: formData.mobile
+                    contact: formData.mobile.replace(/[^\d]/g, '').slice(-10)
                 },
                 notes: {
                     address: formData.address
@@ -277,11 +337,6 @@ const Checkout = () => {
             email: formData.email,
             phone_number: formData.mobile,
             password: signupData.password,
-            country: formData.country,
-            address: formData.address,
-            city: formData.townCity,
-            state: formData.state,
-            zip_code: formData.postcode,
             date_time: new Date().toISOString(),
         };
 
@@ -302,8 +357,10 @@ const Checkout = () => {
                 email: formData.email,
                 otp: otp
             });
+            handleAddAddress(res.data.user._id);
             toast.success("OTP verified successfully");
             login(res.data.token, res.data.user);
+            window.location.reload();
         } catch (err) {
             toast.error(err.response?.data?.message || "Signup failed");
         }
@@ -350,21 +407,24 @@ const Checkout = () => {
                     {/* Billing Details */}
                     <div className="col-lg-7">
                         <div className="bg-light p-4 rounded shadow-sm">
-                            <h2 className="mb-4 pb-3 border-bottom"><i className="fas fa-map-marker-alt me-2 text-primary"></i>Shipping Information</h2>
+                            <h2 className="mb-4 pb-3 border-bottom">
+                                <i className="fas fa-user me-2 text-primary"></i>User Information
+                            </h2>
 
                             <div className="row">
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Name<span className='text-danger'>*</span></label>
+                                <div className="col-md-12 mb-4">
+                                    <label className="form-label fw-bold">First Name<span className='text-danger'>*</span></label>
                                     <input
                                         type="text"
                                         className="form-control py-2"
                                         name="firstName"
-                                        value={formData.firstName || ''}
+                                        value={formData.firstName}
                                         onChange={handleInputChange}
                                         required
                                         style={{ borderRadius: "8px" }}
                                     />
                                 </div>
+
 
 
                                 <div className="col-md-6 mb-4">
@@ -381,9 +441,7 @@ const Checkout = () => {
                                 </div>
 
                                 <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Email
-                                        <span className='text-danger'>*</span>
-                                    </label>
+                                    <label className="form-label fw-bold">Email<span className='text-danger'>*</span></label>
                                     <input
                                         type="email"
                                         className="form-control py-2"
@@ -394,164 +452,313 @@ const Checkout = () => {
                                         style={{ borderRadius: "8px" }}
                                     />
                                 </div>
+                            </div>
 
+                            {/* Shipping Information Section */}
+                            <h2 className="mb-4 pb-3 border-bottom mt-4">
+                                <i className="fas fa-map-marker-alt me-2 text-primary"></i>Shipping Information
+                            </h2>
 
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Address<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
+                            {/* Display user's saved address as a card */}
+                            {user && addressList.length > 0 && (
+                                <div className="mb-4">
+                                    {addressList.map((addr) => {
+                                        const isSelected = selectedAddressId === addr._id;
+                                        return (
+                                            <div
+                                                key={addr._id}
+                                                className={`card p-0 overflow-hidden mb-3 ${isSelected ? 'selected-address' : ''}`}
+                                                style={{
+                                                    borderRadius: '12px',
+                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: '#ffffff',
+                                                    transition: 'all 0.2s ease',
+                                                    position: 'relative',
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                                }}
+                                            >
+                                                {isSelected && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        left: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: '4px',
+                                                        backgroundColor: '#16a34a'
+                                                    }} />
+                                                )}
 
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Town/City<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="townCity"
-                                        value={formData.townCity}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">State<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="state"
-                                        value={formData.state}
-                                        onChange={handleInputChange}
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
+                                                <div className="card-body p-4">
+                                                    <div className="d-flex justify-content-between align-items-start">
+                                                        <div style={{ flex: 1 }}>
+                                                            <div className="d-flex align-items-center mb-3">
+                                                                <div style={{
+                                                                    backgroundColor: isSelected ? '#dcfce7' : '#f3f4f6',
+                                                                    width: '44px',
+                                                                    height: '44px',
+                                                                    borderRadius: '10px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    marginRight: '14px'
+                                                                }}>
+                                                                    <i className={`fas fa-home ${isSelected ? 'text-green-600' : 'text-gray-500'}`} style={{ fontSize: '1.2rem' }}></i>
+                                                                </div>
 
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Country<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="country"
-                                        value={formData.country}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
-                                <div className="col-md-6 mb-4">
-                                    <label className="form-label fw-bold">Postcode<span className='text-danger'>*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control py-2"
-                                        name="postcode"
-                                        value={formData.postcode}
-                                        onChange={handleInputChange}
-                                        style={{ borderRadius: "8px" }}
-                                    />
-                                </div>
+                                                                <div>
+                                                                    <h6 style={{
+                                                                        margin: 0,
+                                                                        color: isSelected ? '#16a34a' : '#1f2937',
+                                                                        fontWeight: 600,
+                                                                        fontSize: '1.05rem'
+                                                                    }}>
+                                                                        {isSelected ? 'Selected Address' : 'Your Address'}
+                                                                    </h6>
+                                                                    <div style={{
+                                                                        fontSize: '0.78rem',
+                                                                        color: isSelected ? '#22c55e' : '#6b7280',
+                                                                        fontWeight: 500,
+                                                                        marginTop: '2px'
+                                                                    }}>
+                                                                        {isSelected ? 'Currently in use' : 'Not selected'}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
 
-                                {!user && (
+                                                            <div style={{ marginLeft: '58px' }}>
+                                                                <div className="address-detail">
+                                                                    <i className={`fas fa-map-marker-alt ${isSelected ? 'text-green-500' : 'text-gray-400'} me-2`} />
+                                                                    <span>{addr.address}</span>
+                                                                </div>
+                                                                <div className="address-detail">
+                                                                    <i className={`fas fa-city ${isSelected ? 'text-green-500' : 'text-gray-400'} me-2`} />
+                                                                    <span>{addr.city}, {addr.state}</span>
+                                                                </div>
+                                                                <div className="address-detail">
+                                                                    <i className={`fas fa-globe ${isSelected ? 'text-green-500' : 'text-gray-400'} me-2`} />
+                                                                    <span>{addr.country} - {addr.zip_code}</span>
+                                                                </div>
+                                                                {/* <div className="address-detail">
+                                                                    <i className={`fas fa-phone ${isSelected ? 'text-green-500' : 'text-gray-400'} me-2`} />
+                                                                    <span>{addr.phone_number}</span>
+                                                                </div> */}
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            {!isSelected ? (
+                                                                <button
+                                                                    className="btn btn-sm"
+                                                                    onClick={() => setSelectedAddressId(addr._id)}
+                                                                    style={{
+                                                                        backgroundColor: '#16a34a',
+                                                                        color: 'white',
+                                                                        borderRadius: '8px',
+                                                                        padding: '7px 14px',
+                                                                        fontSize: '0.82rem',
+                                                                        fontWeight: 500,
+                                                                        border: 'none',
+                                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                >
+                                                                    <i className="fas fa-check-circle me-1"></i>
+                                                                    Use This
+                                                                </button>
+                                                            ) : (
+                                                                <div style={{
+                                                                    backgroundColor: '#dcfce7',
+                                                                    color: '#16a34a',
+                                                                    borderRadius: '50%',
+                                                                    width: '36px',
+                                                                    height: '36px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                                                }}>
+                                                                    <i className="fas fa-check" style={{ fontSize: '0.9rem' }} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <div className="form-check mb-3">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    id="differentAddress"
+                                    checked={formData.differentAddress}
+                                    onChange={() => setFormData(prev => ({
+                                        ...prev,
+                                        differentAddress: !prev.differentAddress
+                                    }))}
+                                />
+                                <label className="form-check-label" htmlFor="differentAddress">
+                                    Ship to a different address
+                                </label>
+                            </div>
+
+                            {formData.differentAddress && (
+                                <div className="row">
+                                    <div className="col-md-12 mb-4">
+                                        <label className="form-label fw-bold">Shipping Address<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            name="address"
+                                            value={formData.address}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ borderRadius: "8px" }}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6 mb-4">
+                                        <label className="form-label fw-bold">Town/City<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            name="townCity"
+                                            value={formData.townCity}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ borderRadius: "8px" }}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6 mb-4">
+                                        <label className="form-label fw-bold">State<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            name="state"
+                                            value={formData.state}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ borderRadius: "8px" }}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6 mb-4">
+                                        <label className="form-label fw-bold">Country<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            name="country"
+                                            value={formData.country}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ borderRadius: "8px" }}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6 mb-4">
+                                        <label className="form-label fw-bold">Postcode<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            name="postcode"
+                                            value={formData.postcode}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ borderRadius: "8px" }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Account creation section for guest users */}
+                            {!user && (
+                                <>
                                     <div className="form-check mb-4">
                                         <input
                                             type="checkbox"
                                             className="form-check-input"
                                             checked={createAccount}
                                             onChange={(e) => setCreateAccount(e.target.checked)}
+                                            id="createAccountCheckbox"
                                         />
-                                        <label className="form-check-label" htmlFor="createAccount">
+                                        <label className="form-check-label" htmlFor="createAccountCheckbox">
                                             Create an account with this information
                                         </label>
                                     </div>
-                                )}
-                                {createAccount && (
-                                    <>
-                                        {createAccount && (
-                                            <div className='row'>
-                                                <div className="col-md-6 mb-4" >
-                                                    <label className="form-label fw-bold">Password<span className='text-danger'>*</span></label>
-                                                    <input
-                                                        className="form-control py-2"
-                                                        type="password"
-                                                        placeholder="Password"
-                                                        value={signupData.password}
-                                                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="col-md-6 mb-4">
-                                                    <label className="form-label fw-bold">Confirm Password<span className='text-danger'>*</span></label>
-                                                    <input
-                                                        className="form-control py-2"
-                                                        type="password"
-                                                        placeholder="Confirm Password"
-                                                        value={confirmPassword}
-                                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    />
-                                                </div>
 
-                                                <div className="col-md-6 mb-4">
-                                                    <button type="button"
-                                                        className="btn btn-primary text-white py-2 px-3 "
-                                                        style={{ borderRadius: "8px", }} onClick={handleSignupBeforeCheckout}>Send OTP</button>
-                                                </div>
+                                    {createAccount && (
+                                        <div className='row'>
+                                            <div className="col-md-6 mb-4">
+                                                <label className="form-label fw-bold">Password<span className='text-danger'>*</span></label>
+                                                <input
+                                                    className="form-control py-2"
+                                                    type="password"
+                                                    placeholder="Password"
+                                                    value={signupData.password}
+                                                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                                                />
                                             </div>
-                                        )}
-                                    </>
-                                )}
+                                            <div className="col-md-6 mb-4">
+                                                <label className="form-label fw-bold">Confirm Password<span className='text-danger'>*</span></label>
+                                                <input
+                                                    className="form-control py-2"
+                                                    type="password"
+                                                    placeholder="Confirm Password"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                />
+                                            </div>
 
-                                {otpSent && !otpVerified && (
-                                    <>
-                                        <div className="col-md-6 mb-4" >
-                                            <label className="form-label fw-bold">OTP<span className='text-danger'>*</span></label>
-
-                                            <input
-                                                type="text"
-                                                className="form-control py-2"
-                                                placeholder="Enter OTP"
-                                                value={otp}
-                                                onChange={(e) => setOtp(e.target.value)}
-                                            />
-                                            <button type="button"
-                                                className="btn btn-primary text-white py-2 px-3 "
-                                                style={{ borderRadius: "8px", marginTop: "13px" }}
-                                                onClick={handleVerifyOtp}>Verify OTP</button>
+                                            <div className="col-md-6 mb-4">
+                                                <button type="button"
+                                                    className="btn btn-primary text-white py-2 px-3 "
+                                                    style={{ borderRadius: "8px" }}
+                                                    onClick={handleSignupBeforeCheckout}>
+                                                    Send OTP
+                                                </button>
+                                            </div>
                                         </div>
-                                    </>
+                                    )}
+                                </>
+                            )}
 
-                                )}
-
-
-                                <div className="form-check mb-3">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="differentAddress"
-                                        checked={formData.differentAddress}
-                                        onChange={handleInputChange}
-                                    />
-                                    <label className="form-check-label">Ship to a different address?</label>
+                            {otpSent && !otpVerified && (
+                                <div className="row">
+                                    <div className="col-md-6 mb-4">
+                                        <label className="form-label fw-bold">OTP<span className='text-danger'>*</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control py-2"
+                                            placeholder="Enter OTP"
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value)}
+                                        />
+                                        <button type="button"
+                                            className="btn btn-primary text-white py-2 px-3 "
+                                            style={{ borderRadius: "8px", marginTop: "13px" }}
+                                            onClick={handleVerifyOtp}>
+                                            Verify OTP
+                                        </button>
+                                    </div>
                                 </div>
+                            )}
 
-                                <div className="mb-4">
-                                    <label className="form-label fw-bold">Order Notes</label>
-                                    <textarea
-                                        className="form-control py-2"
-                                        rows="3"
-                                        name="orderNotes"
-                                        value={formData.orderNotes}
-                                        onChange={handleInputChange}
-                                        placeholder="Any special delivery instructions?"
-                                        style={{ borderRadius: "8px" }}
-                                    ></textarea>
-                                </div>
+                            <div className="mb-4">
+                                <label className="form-label fw-bold">Order Notes</label>
+                                <textarea
+                                    className="form-control py-2"
+                                    rows="3"
+                                    name="orderNotes"
+                                    value={formData.orderNotes}
+                                    onChange={handleInputChange}
+                                    placeholder="Any special delivery instructions?"
+                                    style={{ borderRadius: "8px" }}
+                                ></textarea>
                             </div>
-
                         </div>
                     </div>
 

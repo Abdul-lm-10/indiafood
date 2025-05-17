@@ -14,12 +14,110 @@ const EditProfile = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone_number: '',
+        phone_number: ''
+    });
+    const [editingId, setEditingId] = useState(null);
+    const [addressList, setAddressList] = useState([]);
+    const [showAddressForm, setShowAddressForm] = useState(false);
+
+    const [newAddress, setNewAddress] = useState({
         address: '',
         city: '',
         state: '',
-        zip_code: ''
+        zip_code: '',
+        country: '',
+        isDefault: false
     });
+
+    const handleSetActive = async (index) => {
+        const selectedAddress = addressList[index];
+        const shouldBeDefault = !selectedAddress.isDefault; 
+
+        try {
+            await axios.put(
+                `https://api.indiafoodshop.com/api/auth/v1/delivery-address/${selectedAddress._id}`,
+                {
+                    userId: user._id,
+                    isDefault: shouldBeDefault
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            await fetchAddresses(user._id);
+        } catch (err) {
+            console.error("Failed to update default address:", err);
+            alert("Error updating default address.");
+        }
+    };
+
+    const handleEditAddress = async (index) => {
+        const addressToEdit = addressList[index];
+        setNewAddress({ ...addressToEdit });
+        setEditingId(addressToEdit._id); 
+        setShowAddressForm(true);
+    };
+
+    const handleUpdateAddress = async () => {
+        if (editingId) {
+            try {
+                const res = await axios.put(`https://api.indiafoodshop.com/api/auth/v1/delivery-address/${editingId}`, {
+                    ...newAddress,
+                    userId: user._id
+                });
+                setEditingId(null);
+                setShowAddressForm(false);
+                fetchAddresses(user._id);
+            } catch (err) {
+                console.error("Failed to update address:", err);
+            }
+        }
+    };
+
+    const handleDeleteAddress = async (index) => {
+        const address = addressList[index];
+        try {
+            await axios.delete(`https://api.indiafoodshop.com/api/auth/v1/delivery-address/${address._id}`, {
+                data: { userId: user._id }
+            });
+            setAddressList(prev => prev.filter((_, i) => i !== index));
+        } catch (err) {
+            console.error("Failed to delete address:", err);
+        }
+    };
+
+    const handleAddAddress = async () => {
+        const { address, city, state, zip_code, country } = newAddress;
+        if (address && city && state && zip_code && country) {
+            try {
+                const res = await axios.post(`https://api.indiafoodshop.com/api/auth/v1/delivery-address`, {
+                    ...newAddress,
+                    userId: user._id
+                });
+                setAddressList(prev => [...prev, res.data.address]);
+                setNewAddress({ address: '', city: '', state: '', zip_code: '', country: '', isDefault: false });
+                setShowAddressForm(false);
+            } catch (err) {
+                console.error("Failed to add address:", err);
+            }
+        }
+    };
+
+    const toggleAddressForm = () => {
+        setShowAddressForm(!showAddressForm);
+        setNewAddress({
+            address: '',
+            city: '',
+            state: '',
+            zip_code: '',
+            country: '',
+            isDefault: false
+        });
+    };
 
     useEffect(() => {
         fetchUserDetails();
@@ -32,6 +130,18 @@ const EditProfile = () => {
 
     }, []);
 
+
+    const fetchAddresses = async (userId) => {
+        try {
+            const res = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/delivery-address`, {
+                params: { userId }
+            });
+            setAddressList(res.data.addresses);
+        } catch (err) {
+            console.error("Error fetching addresses:", err);
+        }
+    };
+
     const fetchUserDetails = async () => {
         try {
             const response = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/user-details`, {
@@ -40,8 +150,6 @@ const EditProfile = () => {
                 }
             });
             setUser(response.data);
-            console.log(response.data);
-
             // Add country code to phone number if it doesn't already have one
             const phoneNumber = response.data.phone_number || '';
             const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `${countryCode} ${phoneNumber}`;
@@ -50,12 +158,10 @@ const EditProfile = () => {
                 name: response.data.name || '',
                 email: response.data.email || '',
                 phone_number: formattedPhoneNumber,
-                address: response.data.address || '',
-                city: response.data.city || '',
-                state: response.data.state || '',
-                zip_code: response.data.zip_code || ''
             });
             setLoading(false);
+            fetchAddresses(response.data._id);
+
         } catch (error) {
             console.error('Error fetching user details:', error);
             setLoading(false);
@@ -175,55 +281,157 @@ const EditProfile = () => {
                                                 placeholder={`${countryCode} Phone Number`}
                                             />
                                         </div>
-                                        <div className="col-12">
-                                            <label className="form-label">Address</label>
-                                            <textarea
-                                                className="form-control"
-                                                name="address"
-                                                value={formData.address}
-                                                onChange={handleInputChange}
-                                                rows="3"
-                                            ></textarea>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label">City</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <label className="form-label">State</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="state"
-                                                value={formData.state}
-                                                onChange={handleInputChange}
-                                            />
-                                        </div>
-                                        <div className="col-md-2">
-                                            <label className="form-label">PinCode</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="zip_code"
-                                                value={formData.zip_code}
-                                                onChange={handleInputChange}
-                                            />
-                                        </div>
+
                                     </div>
 
                                     <div className="mt-4 text-end">
-                                        <button type="submit" className="btn btn-primary px-5 py-2" disabled={loading}>
+                                        <button type="submit" className="btn btn-primary px-5 py-2 text-white" disabled={loading}>
                                             {loading ? 'Saving...' : 'Save Changes'}
                                         </button>
                                     </div>
                                 </form>
                             </div>
+                        </div>
+
+                        <div className="mt-5">
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h5>Saved Addresses</h5>
+                                <button
+                                    className="btn btn-primary btn-sm text-white p-2"
+                                    onClick={toggleAddressForm}
+                                >
+                                    {showAddressForm ? 'Cancel' : '+ Add Delivery Address'}
+                                </button>
+                            </div>
+
+                            {addressList.length === 0 && !showAddressForm ? (
+                                <div className="alert alert-info">No saved addresses found.</div>
+                            ) : (
+                                <div className="row">
+                                    {addressList.map((addr, i) => (
+                                        <div key={i} className="col-md-6 mb-4">
+                                            <div className={`card h-100 ${addr.isDefault ? 'border-primary' : ''}`}>
+                                                <div className="card-body">
+                                                    {addr.isDefault && (
+                                                        <span className="badge bg-primary position-absolute top-0 end-0 m-2">Active</span>
+                                                    )}
+                                                    <h6 className="card-title">Address {i + 1}</h6>
+                                                    <div className="card-text">
+                                                        <p className="mb-1"><strong>Street:</strong> {addr.address}</p>
+                                                        <p className="mb-1"><strong>City:</strong> {addr.city}</p>
+                                                        <p className="mb-1"><strong>State:</strong> {addr.state}</p>
+                                                        <p className="mb-1"><strong>Zip:</strong> {addr.zip_code}</p>
+                                                        <p className="mb-0"><strong>Country:</strong> {addr.country}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="card-footer bg-transparent border-top-0">
+                                                    <div className="d-flex justify-content-between">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary" style={{ hover: {  color: '#ffffff' } }}
+                                                            onClick={() => handleSetActive(i)}
+                                                            // disabled={addr.isDefault}
+                                                        >
+                                                            {addr.isDefault ? 'Active' : 'Set as Active'}
+                                                        </button>
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-outline-secondary me-2"
+                                                                onClick={() => handleEditAddress(i)}
+                                                            >
+                                                                <i className="bi bi-pencil"></i> Edit
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-outline-danger"
+                                                                onClick={() => handleDeleteAddress(i)}
+                                                            >
+                                                                <i className="bi bi-trash"></i> Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {showAddressForm && (
+                                <div className="col-12 mt-4">
+                                    <div className="card">
+                                        <div className="card-body">
+                                            <h5 className="card-title">Add New Delivery Address</h5>
+                                            <div className="row g-3">
+                                                <div className="col-md-6">
+                                                    <label htmlFor="address" className="form-label">Street Address</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="address"
+                                                        placeholder="123 Main St"
+                                                        value={newAddress.address}
+                                                        onChange={e => setNewAddress({ ...newAddress, address: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <label htmlFor="city" className="form-label">City</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="city"
+                                                        placeholder="City"
+                                                        value={newAddress.city}
+                                                        onChange={e => setNewAddress({ ...newAddress, city: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <label htmlFor="state" className="form-label">State/Province</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="state"
+                                                        placeholder="State"
+                                                        value={newAddress.state}
+                                                        onChange={e => setNewAddress({ ...newAddress, state: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <label htmlFor="zip" className="form-label">Zip/Postal Code</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="zip"
+                                                        placeholder="Zip Code"
+                                                        value={newAddress.zip_code}
+                                                        onChange={e => setNewAddress({ ...newAddress, zip_code: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <label htmlFor="country" className="form-label">Country</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="country"
+                                                        placeholder="Country"
+                                                        value={newAddress.country}
+                                                        onChange={e => setNewAddress({ ...newAddress, country: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="col-12 text-end">
+                                                    <button onClick={editingId ? handleUpdateAddress : handleAddAddress} className="btn btn-primary text-white p-2">
+                                                        {editingId ? "Update Address" : "Add Address"}
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={toggleAddressForm}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

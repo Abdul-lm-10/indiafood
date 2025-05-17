@@ -20,6 +20,7 @@ const UserDetails = () => {
         }
     }, []);
 
+
     const fetchUserDetails = async () => {
         try {
             const response = await axios.get(`https://api.indiafoodshop.com/api/auth/v1/user-details`, {
@@ -34,6 +35,9 @@ const UserDetails = () => {
             setLoading(false);
         }
     };
+
+
+
 
     return (
         <>
@@ -124,11 +128,13 @@ const UserDetails = () => {
                                         Edit Profile
                                     </Link>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             <Footer />
         </>

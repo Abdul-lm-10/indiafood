@@ -505,7 +505,6 @@ const Home = () => {
             </div>
             {/*  Banner Section End  */}
 
-
             {/*  Bestsaler Product Start  */}
             <div className="container-fluid py-5">
                 <div className="container py-5">
