@@ -34,6 +34,7 @@ import ForgotPassword from './components/pages/user-auth/forgotPassword';
 import VerifyResetOtp from './components/pages/user-auth/verifyResetOtp';
 import ResetPassword from './components/pages/user-auth/resetPassword';
 
+
 const ProtectedRoute = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
   return user ? children : <Navigate to="/login" />;

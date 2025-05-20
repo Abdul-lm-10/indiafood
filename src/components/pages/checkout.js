@@ -19,6 +19,8 @@ const Checkout = () => {
     const [couponCode, setCouponCode] = useState('');
     const [couponDiscount, setCouponDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
+    const [error, setError] = useState(-1);
+    const [errorMsg, setErrorMsg] = useState('');
     const [orderId, setOrderId] = useState('');
     const [createAccount, setCreateAccount] = useState(false);
     const [otp, setOtp] = useState('');
@@ -28,7 +30,6 @@ const Checkout = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [addressList, setAddressList] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
-
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -51,33 +52,42 @@ const Checkout = () => {
 
     const cleanMobile = (formData.mobile || user?.phone_number || '').replace(/^\+\d+\s*|[^\d]/g, '');
 
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-        if (name === "mobile") {
-            const digitsOnly = value.replace(/[^\d]/g, '');
-            const formatted = digitsOnly ? `${countryCode} ${digitsOnly}` : '';
-            setFormData(prev => ({
-                ...prev,
-                mobile: formatted
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: type === 'checkbox' ? checked : value
-            }));
-        }
-    };
+    if (name === "mobile") {
+        const digitsOnly = value.replace(/[^\d]/g, '');
+
+        // Remove country code prefix if already present
+        const raw = digitsOnly.startsWith(countryCode.replace('+', '')) 
+            ? digitsOnly.slice(countryCode.length - 1) 
+            : digitsOnly;
+
+        // If user deletes everything, still show country code
+        const formatted = `${countryCode} ${raw}`;
+
+        setFormData(prev => ({
+            ...prev,
+            mobile: formatted.trim()
+        }));
+    } else {
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    }
+};
+
 
 
     useEffect(() => {
         if (user) {
-        fetchAddresses(user?._id);
-        } else {    
-           setFormData(prev => ({
-            ...prev,
-            differentAddress: true 
-        }));
+            fetchAddresses(user?._id);
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                differentAddress: true
+            }));
         }
         setTimeout(() => {
             setLoading(false);
@@ -137,18 +147,18 @@ const Checkout = () => {
 
     const handleAddAddress = async (userId) => {
 
-            try {
-                const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/delivery-address', {
-                    ...deliveryPayload, userId: userId || user._id 
-                });
+        try {
+            const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/delivery-address', {
+                ...deliveryPayload, userId: userId || user._id
+            });
 
-                const savedAddress = res.data.address;
+            const savedAddress = res.data.address;
 
-                setAddressList(prev => [...prev, savedAddress]);
-                setSelectedAddressId(savedAddress._id);
-            } catch (err) {
-                console.error("Failed to add address:", err);
-            }
+            setAddressList(prev => [...prev, savedAddress]);
+            setSelectedAddressId(savedAddress._id);
+        } catch (err) {
+            console.error("Failed to add address:", err);
+        }
     };
 
     const handleCouponSubmit = async (e) => {
@@ -201,10 +211,10 @@ const Checkout = () => {
 
     const orderPayload = {
         user_id: user ? user._id : null,
-        location: !formData.differentAddress ?  selectedDeliveryAddress?.address : formData.address,
+        location: !formData.differentAddress ? selectedDeliveryAddress?.address : formData.address,
         name: formData.firstName || user?.name,
         city: !formData.differentAddress ? selectedDeliveryAddress?.city : formData.townCity,
-        state:!formData.differentAddress ? selectedDeliveryAddress?.state : formData.state,
+        state: !formData.differentAddress ? selectedDeliveryAddress?.state : formData.state,
         country: !formData.differentAddress ? selectedDeliveryAddress?.country : formData.country,
         zip_code: !formData.differentAddress ? selectedDeliveryAddress?.zip_code : formData.postcode,
         email: formData.email || user?.email,
@@ -323,12 +333,16 @@ const Checkout = () => {
     // Function to handle Signup
     const handleSignupBeforeCheckout = async () => {
         if (!signupData.password) {
-            toast.error("Password is required to create an account");
+            // toast.error("Password is required to create an account");
+            setErrorMsg("Password is required to create an account");
+            setError(1);
             return;
         }
 
         if (signupData.password !== confirmPassword) {
-            toast.error("Passwords do not match");
+            //toast.error("Passwords do not match");
+            setErrorMsg("Passwords do not match");
+            setError(1);
             return;
         }
 
@@ -344,12 +358,22 @@ const Checkout = () => {
             const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/signup', signupPayload);
             toast.success("OTP sent to your email");
             setOtpSent(true);
+            setError(-1)
+            setErrorMsg('');
+            setCreateAccount(false);
         } catch (err) {
-            toast.error(err.response?.data?.message || "Signup failed");
+            if (err.response.data.message && err.response.data.message != '') {
+                setError(1);
+                toast.error(err.response?.data?.message || "Signup failed");
+                setErrorMsg(err.response.data.message);
+                toast.error(err);
+            } else {
+                setError(1);
+                setErrorMsg("Something Went Wrong");
+            }
         }
     };
-
-
+    
     // Function to handle OTP
     const handleVerifyOtp = async () => {
         try {
@@ -362,6 +386,8 @@ const Checkout = () => {
             login(res.data.token, res.data.user);
             window.location.reload();
         } catch (err) {
+            setError(1);
+            setErrorMsg(err.response.data.message);
             toast.error(err.response?.data?.message || "Signup failed");
         }
     };
@@ -436,6 +462,7 @@ const Checkout = () => {
                                         value={formData.mobile}
                                         onChange={handleInputChange}
                                         required
+                                        maxLength={16}
                                         style={{ borderRadius: "8px" }}
                                     />
                                 </div>
@@ -681,7 +708,8 @@ const Checkout = () => {
                                         <input
                                             type="checkbox"
                                             className="form-check-input"
-                                            checked={createAccount}
+                                            checked={createAccount || otpSent}
+                                            disabled={otpSent}
                                             onChange={(e) => setCreateAccount(e.target.checked)}
                                             id="createAccountCheckbox"
                                         />
@@ -691,7 +719,17 @@ const Checkout = () => {
                                     </div>
 
                                     {createAccount && (
+
                                         <div className='row'>
+                                            {
+                                                error == 1 ?
+                                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                        <strong>Error!</strong> {errorMsg}
+                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                    </div>
+                                                    :
+                                                    ''
+                                            }
                                             <div className="col-md-6 mb-4">
                                                 <label className="form-label fw-bold">Password<span className='text-danger'>*</span></label>
                                                 <input
@@ -721,6 +759,8 @@ const Checkout = () => {
                                                     Send OTP
                                                 </button>
                                             </div>
+
+
                                         </div>
                                     )}
                                 </>
@@ -728,6 +768,19 @@ const Checkout = () => {
 
                             {otpSent && !otpVerified && (
                                 <div className="row">
+                                    <div className="alert alert-info d-flex align-items-center" role="alert">
+                                        <i className="bi bi-info-circle-fill me-2"></i>
+                                        OTP has been sent to your {formData.email}.
+                                    </div>
+                                    {
+                                        error == 1 ?
+                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                <strong>Error!</strong> {errorMsg}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                            :
+                                            ''
+                                    }
                                     <div className="col-md-6 mb-4">
                                         <label className="form-label fw-bold">OTP<span className='text-danger'>*</span></label>
                                         <input

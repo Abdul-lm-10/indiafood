@@ -80,7 +80,7 @@ const Header = ({ onCountryChange }) => {
                             <span className="fa fa-bars text-primary"></span>
                         </button>
                         <div className="collapse navbar-collapse bg-white" id="navbarCollapse">
-                            <div className="navbar-nav mx-auto">
+                            {/* <div className="navbar-nav mx-auto">
                                 <NavLink to={'/'} className="nav-item nav-link active">
                                     Home
                                 </NavLink>
@@ -95,7 +95,54 @@ const Header = ({ onCountryChange }) => {
                                     About us
                                 </NavLink>
                                 <NavLink to={'/contact'} className="nav-item nav-link">Contact</NavLink>
+                            </div> */}
+                            <div className="navbar-nav mx-auto">
+                                <NavLink
+                                    to="/"
+                                    className={({ isActive }) =>
+                                        `nav-item nav-link ${isActive ? 'fw-bold text-primary' : ''}`
+                                    }
+                                >
+                                    Home
+                                </NavLink>
+
+                                <NavLink
+                                    to="/categories"
+                                    className={({ isActive }) =>
+                                        `nav-item nav-link ${isActive ? 'fw-bold text-primary' : ''}`
+                                    }
+                                >
+                                    Categories
+                                </NavLink>
+
+                                <NavLink
+                                    to="/products"
+                                    className={({ isActive }) =>
+                                        `nav-item nav-link ${isActive ? 'fw-bold text-primary' : ''}`
+                                    }
+                                >
+                                    Products
+                                </NavLink>
+
+                                <NavLink
+                                    to="/aboutus"
+                                    className={({ isActive }) =>
+                                        `nav-item nav-link ${isActive ? 'fw-bold text-primary' : ''}`
+                                    }
+                                >
+                                    About us
+                                </NavLink>
+
+                                <NavLink
+                                    to="/contact"
+                                    className={({ isActive }) =>
+                                        `nav-item nav-link ${isActive ? 'fw-bold text-primary' : ''}`
+                                    }
+                                >
+                                    Contact
+                                </NavLink>
                             </div>
+
                             <div className="d-flex align-items-center">
                                 {/* Custom Country Dropdown */}
                                 <div className="dropdown me-3">

@@ -63,7 +63,7 @@ const CategoryProductList = () => {
                                         <input
                                             type="search"
                                             className="form-control p-3"
-                                            placeholder="keywords"
+                                            placeholder="Search..."
                                             aria-describedby="search-icon-1"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}

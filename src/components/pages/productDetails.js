@@ -38,18 +38,20 @@ const ProductDetails = () => {
         addToCart(productDetails, selectedCountryId, selectedPriceIndex, quantity);
     };
 
-    useEffect(() => {
+     useEffect(() => {
+         setLoading(true);
         const timer = setTimeout(() => {
             setLoading(false);
-        }, 2000);
+        }, 1000);
 
         return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
+             setLoading(true);
             try {
-                setLoading(true);
+               
                 const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`);
                 if (response.data) {
                     setProductDetails(response.data);
@@ -67,13 +69,12 @@ const ProductDetails = () => {
         fetchProductDetails();
     }, [slug]);
 
-
-
     if (loading) return <Spinner />;
     if (error) return <div className="text-center py-5">{error}</div>;
-    if (!productDetails) return <div className="text-center py-5">Product Hell not found</div>;
     const countryPrices = productDetails.prices.filter(p => p.country_id === selectedCountryId);
     const selectedPrice = countryPrices[selectedPriceIndex] || countryPrices[0];
+    if (!productDetails) return <div className="text-center py-5">Product Hell not found</div>;
+
     return (
         <>
             <Helmet>
@@ -84,9 +85,7 @@ const ProductDetails = () => {
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
                 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
-            {
-                loading ? <Spinner /> : ''
-            }
+            { loading ? <Spinner /> : ""}
             <SearchModel />
 
             <div className="container-fluid page-header py-5">
@@ -212,7 +211,7 @@ const ProductDetails = () => {
 
                                         {activeTab === 'reviews' && (
                                             <div className="tab-pane active">
-                                                <Reviews />
+                                                <Reviews product_id={productDetails._id}/>
                                                 {user ? (
                                                     <ReviewForm productId={productDetails._id} />
                                                 ) : (

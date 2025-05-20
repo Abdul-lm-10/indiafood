@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import data from '../../json file/faq.json'
 
 const FAQ = () => {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const handleClick = (index) => {
     setActiveIndex(activeIndex === index ? null : index);

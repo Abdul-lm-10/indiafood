@@ -17,6 +17,7 @@ const ProductList = () => {
     const [sortOption, setSortOption] = useState("default");
 
     useEffect(() => {
+        setLoading(true);
         const timer = setTimeout(() => {
             setLoading(false);
         }, 100);
@@ -35,9 +36,7 @@ const ProductList = () => {
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
                 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
-            {
-                loading ? <Spinner /> : ''
-            }
+            {loading ? <Spinner /> : ""}
 
             <SearchModel />
 
@@ -61,7 +60,7 @@ const ProductList = () => {
                                         <input
                                             type="search"
                                             className="form-control p-3"
-                                            placeholder="keywords"
+                                            placeholder="Search..."
                                             aria-describedby="search-icon-1"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -76,7 +75,7 @@ const ProductList = () => {
                             <div class="row g-4">
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm}  sortOption={sortOption} currencySymbol={currencySymbol}/>
+                                        <ProductListComponent selectedCountryId={selectedCountryId} searchTerm={searchTerm} sortOption={sortOption} currencySymbol={currencySymbol} />
                                     </div>
                                 </div>
                                 {/* Products List End */}

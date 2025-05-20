@@ -43,7 +43,7 @@ const FeaturedProducts = () => {
                         return acc;
                     }, [])
                     .map((product) => (
-                        <Link to={'/category/' + product.category_id}>
+                        <Link to={'/product/' + product.slug}>
                             <div
                                 key={product._id}
                                 className="d-flex align-items-center justify-content-start mb-3"
@@ -64,14 +64,20 @@ const FeaturedProducts = () => {
                                         {[1, 2, 3, 4].map((_, i) => (
                                             <i key={i} className="fa fa-star text-secondary"></i>
                                         ))}
-                                        <i className="fa fa-star"></i>
+                                        <i className="fa fa-star" style={{color: "#747D88"}}></i>
                                     </div>
                                     <div className="d-flex flex-column">
-                                        {product.prices.map((item, idx) => (
-                                            <p key={idx} className="text-dark fs-6 mb-0">
-                                                {currencySymbol}{item.price} / {item.quantity}
-                                            </p>
-                                        ))}
+                                        <div className="text-dark fs-5 fw-bold mb-0">
+                                            {product.prices && (
+                                                product.prices
+                                                    .filter((item) => item.quantity === "1kg")
+                                                    .map((item, idx) => (
+                                                        <div key={idx} className="text-dark fs-6 mb-1">
+                                                            {currencySymbol}{item.price} / {item.quantity}
+                                                        </div>
+                                                    ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
 
 
-const ProductListComponent = ({ selectedCountryId,currencySymbol, searchTerm, sortOption }) => {
+const ProductListComponent = ({ selectedCountryId, currencySymbol, searchTerm, sortOption }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -26,37 +26,37 @@ const ProductListComponent = ({ selectedCountryId,currencySymbol, searchTerm, so
 
         fetchProducts();
     }, [selectedCountryId]);
-    
+
     const sortedProducts = useMemo(() => {
         let sorted = [...products];
-      
+
         const getLowestPrice = (product) => {
-          if (!product.prices || product.prices.length === 0) return 0;
-          return Math.min(...product.prices.map(p => parseFloat(p.price)));
+            if (!product.prices || product.prices.length === 0) return 0;
+            return Math.min(...product.prices.map(p => parseFloat(p.price)));
         };
-      
+
         switch (sortOption) {
-          case "az":
-            sorted.sort((a, b) => a.name.localeCompare(b.name));
-            break;
-          case "za":
-            sorted.sort((a, b) => b.name.localeCompare(a.name));
-            break;
-          case "priceLowHigh":
-            sorted.sort((a, b) => getLowestPrice(a) - getLowestPrice(b));
-            break;
-          case "priceHighLow":
-            sorted.sort((a, b) => getLowestPrice(b) - getLowestPrice(a));
-            break;
-          default:
-            break;
+            case "az":
+                sorted.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case "za":
+                sorted.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            case "priceLowHigh":
+                sorted.sort((a, b) => getLowestPrice(a) - getLowestPrice(b));
+                break;
+            case "priceHighLow":
+                sorted.sort((a, b) => getLowestPrice(b) - getLowestPrice(a));
+                break;
+            default:
+                break;
         }
-      
+
         return sorted.filter((product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      }, [products, sortOption, searchTerm]);
-      
+    }, [products, sortOption, searchTerm]);
+
     if (loading) return <p>Loading products...</p>;
     if (error) return <p>{error}</p>;
 
@@ -81,11 +81,15 @@ const ProductListComponent = ({ selectedCountryId,currencySymbol, searchTerm, so
                             <Link to={`/product/${product.slug}`}>{product.name}</Link>
                             <div className="d-flex justify-content-between flex-lg-wrap">
                                 <div className="text-dark fs-5 fw-bold mb-0">
-                                    {product.prices && product.prices.map((item, idx) => (
-                                        <div key={idx} className="text-dark fs-6 mb-1">
-                                            {currencySymbol}{item.price} / {item.quantity}
-                                        </div>
-                                    ))}
+                                    {product.prices && (
+                                        product.prices
+                                            .filter((item) => item.quantity === "1kg")
+                                            .map((item, idx) => (
+                                                <div key={idx} className="text-dark fs-6 mb-1">
+                                                    {currencySymbol}{item.price} / {item.quantity}
+                                                </div>
+                                            ))
+                                    ) }
                                 </div>
                                 <button
                                     className="btn border border-secondary rounded-pill px-3 text-primary"

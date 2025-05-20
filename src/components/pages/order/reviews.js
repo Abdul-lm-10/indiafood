@@ -1,24 +1,36 @@
-const Reviews = () =>{
-    return(
-        <div class="d-flex">
-            <img src="img/avatar.jpg" class="img-fluid rounded-circle p-3" style={{width: '100px', height: '100px'}} alt="" />
-            <div class="">
-                <p class="mb-2" style={{fontSize: '14px'}}>April 12, 2024</p>
-                <div class="d-flex justify-content-between">
-                    <h5>Jason Smith</h5>
-                    <div class="d-flex mb-3">
-                        <i class="fa fa-star text-secondary"></i>
-                        <i class="fa fa-star text-secondary"></i>
-                        <i class="fa fa-star text-secondary"></i>
-                        <i class="fa fa-star text-secondary"></i>
-                        <i class="fa fa-star"></i>
-                    </div>
-                </div>
-                <p>The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic 
-                    words etc. Susp endisse ultricies nisi vel quam suscipit </p>
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const Reviews = ({ product_id }) => {
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    axios.get(`https://api.indiafoodshop.com/api/auth/v1/review/product/${product_id}`).then(res => {
+      setReviews(res.data.data || []);
+    });
+  }, [product_id]);
+
+  return (
+    <div>
+      {reviews.map((r, idx) => (
+        <div className="d-flex mb-4" key={idx}>
+          <img src="/img/avatar.png" className="img-fluid rounded-circle p-3" style={{ width: '80px', height: '80px' }} alt="avatar" />
+          <div>
+            <p className="mb-2" style={{ fontSize: '14px' }}>{r.date_time}</p>
+            <div className="d-flex justify-content-between">
+              <h5>{r.name}</h5>
+              <div className="d-flex mb-3">
+                {[1,2,3,4,5].map((s) => (
+                  <i key={s} className={`fa fa-star ${s <= r.rating ? 'text-warning' : 'text-muted'}`}></i>
+                ))}
+              </div>
             </div>
+            <p>{r.review}</p>
+          </div>
         </div>
-    )
-}
+      ))}
+    </div>
+  );
+};
 
 export default Reviews;
