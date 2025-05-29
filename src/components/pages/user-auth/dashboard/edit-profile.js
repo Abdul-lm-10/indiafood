@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import axios from 'axios';
@@ -11,6 +13,7 @@ const EditProfile = () => {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const { countryCode } = useCountry();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -31,7 +34,7 @@ const EditProfile = () => {
 
     const handleSetActive = async (index) => {
         const selectedAddress = addressList[index];
-        const shouldBeDefault = !selectedAddress.isDefault; 
+        const shouldBeDefault = !selectedAddress.isDefault;
 
         try {
             await axios.put(
@@ -58,7 +61,7 @@ const EditProfile = () => {
     const handleEditAddress = async (index) => {
         const addressToEdit = addressList[index];
         setNewAddress({ ...addressToEdit });
-        setEditingId(addressToEdit._id); 
+        setEditingId(addressToEdit._id);
         setShowAddressForm(true);
     };
 
@@ -206,6 +209,18 @@ const EditProfile = () => {
         setLoading(false);
     };
 
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('https://api.indiafoodshop.com/api/auth/v1/forgot-password', { email: formData.email });
+            sessionStorage.setItem('resetEmail', formData.email);
+            toast.success('OTP sent to your email');
+            navigate('/verify-reset-otp', { state: { email: formData.email } });
+        } catch (err) {
+            toast.error('Please enter a valid email');
+        }
+    };
+
     return (
         <>
             <Helmet>
@@ -230,22 +245,31 @@ const EditProfile = () => {
                     <div className="col-lg-8">
                         <div className="card shadow-sm border-0" style={{ borderRadius: '15px' }}>
                             <div className="card-body p-4 p-md-5">
-                                <div className="d-flex align-items-center mb-4 pb-2">
-                                    <div className="position-relative">
-                                        <img
-                                            src="/img/avatar.png"
-                                            alt="Profile"
-                                            className="rounded-circle"
-                                            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                                        />
-                                        <button className="btn btn-sm btn-primary position-absolute bottom-0 end-0">
-                                            <i className="fas fa-camera"></i>
-                                        </button>
+                                <div className="d-flex justify-content-between align-items-center mb-4 pb-2">
+                                    {/* Left side: Profile picture and user info */}
+                                    <div className="d-flex align-items-center">
+                                        <div className="position-relative">
+                                            <img
+                                                src="/img/avatar.png"
+                                                alt="Profile"
+                                                className="rounded-circle"
+                                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                            />
+                                            <button className="btn btn-sm btn-primary position-absolute bottom-0 end-0">
+                                                <i className="fas fa-camera"></i>
+                                            </button>
+                                        </div>
+                                        <div className="ms-4">
+                                            <h3 className="mb-1">{user?.name}</h3>
+                                            <p className="text-muted mb-0">{user?.email}</p>
+                                        </div>
                                     </div>
-                                    <div className="ms-4">
-                                        <h3 className="mb-1">{user?.name}</h3>
-                                        <p className="text-muted mb-0">{user?.email}</p>
-                                    </div>
+
+                                    {/* Right side: Edit Password button */}
+                                    <button className="btn btn-primary btn-sm text-white p-2" onClick={handleForgotPassword}>
+                                        <i className="fas fa-key me-2" ></i>
+                                        Edit Password
+                                    </button>
                                 </div>
 
                                 <form onSubmit={handleSubmit}>
@@ -327,9 +351,9 @@ const EditProfile = () => {
                                                 <div className="card-footer bg-transparent border-top-0">
                                                     <div className="d-flex justify-content-between">
                                                         <button
-                                                            className="btn btn-sm btn-outline-primary" style={{ hover: {  color: '#ffffff' } }}
+                                                            className="btn btn-sm btn-outline-primary" style={{ hover: { color: '#ffffff' } }}
                                                             onClick={() => handleSetActive(i)}
-                                                            // disabled={addr.isDefault}
+                                                        // disabled={addr.isDefault}
                                                         >
                                                             {addr.isDefault ? 'Active' : 'Set as Active'}
                                                         </button>

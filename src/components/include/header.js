@@ -171,7 +171,7 @@ const Header = ({ onCountryChange }) => {
                                 </div>
                             </div>
                             <div className="d-flex m-3 me-0">
-                                <Cart />
+                     
                                 <LoginOrAvatar />
                             </div>
                         </div>

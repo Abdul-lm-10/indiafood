@@ -9,6 +9,7 @@ import axios from 'axios';
 import { useAuth } from "../../context/AuthContext";
 import defultImage from "../../external-assets/img/ifs-logo-3.png"
 import { toast } from 'react-toastify';
+import { use } from 'react';
 
 const Checkout = () => {
     const { cart, clearCart } = useCart();
@@ -22,7 +23,7 @@ const Checkout = () => {
     const [error, setError] = useState(-1);
     const [errorMsg, setErrorMsg] = useState('');
     const [orderId, setOrderId] = useState('');
-    const [createAccount, setCreateAccount] = useState(false);
+    const [createAccount, setCreateAccount] = useState(true);
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
@@ -30,6 +31,18 @@ const Checkout = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [addressList, setAddressList] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
+
+    //Login 
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [isGuestCheckout, setIsGuestCheckout] = useState(false);
+    const [loginFormData, setLoginFormData] = useState({
+        email: '',
+        password: ''
+    });
+
+    //Success Modal
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successOrderId, setSuccessOrderId] = useState('');
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -50,33 +63,40 @@ const Checkout = () => {
         password: ''
     });
 
-    const cleanMobile = (formData.mobile || user?.phone_number || '').replace(/^\+\d+\s*|[^\d]/g, '');
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (name === "mobile") {
-        const digitsOnly = value.replace(/[^\d]/g, '');
-
-        // Remove country code prefix if already present
-        const raw = digitsOnly.startsWith(countryCode.replace('+', '')) 
-            ? digitsOnly.slice(countryCode.length - 1) 
-            : digitsOnly;
-
-        // If user deletes everything, still show country code
-        const formatted = `${countryCode} ${raw}`;
-
-        setFormData(prev => ({
+    const handleLoginInputChange = (e) => {
+        const { name, value } = e.target;
+        setLoginFormData(prev => ({
             ...prev,
-            mobile: formatted.trim()
+            [name]: value
         }));
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-    }
-};
+    };
+
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+
+        if (name === "mobile") {
+            const digitsOnly = value.replace(/[^\d]/g, '');
+
+            // Remove country code prefix if already present
+            const raw = digitsOnly.startsWith(countryCode.replace('+', ''))
+                ? digitsOnly.slice(countryCode.length - 1)
+                : digitsOnly;
+
+            // If user deletes everything, still show country code
+            const formatted = `${countryCode} ${raw}`;
+
+            setFormData(prev => ({
+                ...prev,
+                mobile: formatted.trim()
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
+    };
 
 
 
@@ -86,7 +106,8 @@ const Checkout = () => {
         } else {
             setFormData(prev => ({
                 ...prev,
-                differentAddress: true
+                differentAddress: true,
+                createAccount: true
             }));
         }
         setTimeout(() => {
@@ -119,6 +140,7 @@ const Checkout = () => {
                 ...prev,
                 ...userData
             }));
+
         }
     }, [user?.id]);
 
@@ -243,6 +265,11 @@ const Checkout = () => {
             return;
         }
 
+        if (!otpVerified && !user) {
+            toast.error('Please verify your OTP or login to continue.');
+            return;
+        }
+
         if (formData.differentAddress) {
             handleAddAddress(user?._id);
         }
@@ -267,7 +294,7 @@ const Checkout = () => {
             const razorpayOrder = data;
 
             const options = {
-                key: 'rzp_test_T7RYplU5wIDWYV',
+                key: 'rzp_live_a6EOFHg69KPq0Y',
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
                 name: 'India Food Shop',
@@ -275,7 +302,6 @@ const Checkout = () => {
                 image: defultImage,
                 order_id: razorpayOrder.order_id,
                 handler: async function (response) {
-                    console.log('Razorpay payment response:', response);
 
                     if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
                         toast.error('Incomplete payment response from Razorpay.');
@@ -297,10 +323,13 @@ const Checkout = () => {
 
                         if (verificationResponse.data.success) {
                             toast.success('Payment successful! Your order has been placed.');
+                            setSuccessOrderId(response.razorpay_order_id);
+                            setShowSuccessModal(true);
                             clearCart()
-                            setTimeout(() => {
-                                navigate('/order');
-                            }, 6000);
+
+                            // setTimeout(() => {
+                            //     navigate('/order');
+                            // }, 6000);
                         } else {
                             toast.error('Payment verification failed. Please contact support.');
                         }
@@ -373,7 +402,7 @@ const Checkout = () => {
             }
         }
     };
-    
+
     // Function to handle OTP
     const handleVerifyOtp = async () => {
         try {
@@ -381,7 +410,7 @@ const Checkout = () => {
                 email: formData.email,
                 otp: otp
             });
-            handleAddAddress(res.data.user._id);
+            await handleAddAddress(res.data.user._id);
             toast.success("OTP verified successfully");
             login(res.data.token, res.data.user);
             window.location.reload();
@@ -392,6 +421,42 @@ const Checkout = () => {
         }
     };
 
+
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('https://api.indiafoodshop.com/api/auth/v1/login', loginFormData);
+            console.log(res);
+            setError(-1)
+            setErrorMsg('');
+            toast.success("Login Successful");
+            login(res.data.token, res.data.user);
+            setShowLoginModal(false);
+            window.location.reload();
+        } catch (err) {
+            if (err.response.data.message && err.response.data.message != '') {
+                setError(1);
+                setErrorMsg(err.response.data.message);
+                toast.error(err);
+            } else {
+                setError(1);
+                setErrorMsg("Something Went Wrong");
+            }
+        }
+    };
+
+
+    const handleResend = async () => {
+        try {
+            await axios.post('https://api.indiafoodshop.com/api/auth/v1/resend-otp', {
+                email: formData.email
+            });
+            toast.success('OTP resent successfully');
+        } catch (err) {
+            setError('Failed to resend OTP');
+            toast.error(err.response?.data?.message || 'Failed to resend OTP');
+        }
+    };
 
     return (
         <>
@@ -406,24 +471,13 @@ const Checkout = () => {
 
             {loading && <Spinner />}
             <SearchModel />
-
-            {/* Page Header Start */}
-            <div className="container-fluid page-header mb-5 position-relative" style={{
-                background: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/external-assets/img/cart-page-header-img.png') center/cover no-repeat",
-                minHeight: "300px",
-                display: "flex",
-                alignItems: "center"
-            }}>
-
-                <div className="container text-center">
-                    <h1 className="display-3 mb-3 text-white animated fadeInDown">Checkout</h1>
-                    <nav aria-label="breadcrumb" className="animated fadeInDown">
-                        <ol className="breadcrumb justify-content-center text-uppercase mb-0">
-                            <li className="breadcrumb-item"><a className="text-white" href="/">Home</a></li>
-                            <li className="breadcrumb-item text-white active" aria-current="page">Checkout</li>
-                        </ol>
-                    </nav>
-                </div>
+            <div className="container-fluid page-header py-5">
+                <h1 className="text-center text-white display-6">Checkout</h1>
+                <ol className="breadcrumb justify-content-center mb-0">
+                    <li className="breadcrumb-item"><a href="/">Home</a></li>
+                    <li className="breadcrumb-item"><a href="#">Pages</a></li>
+                    <li className="breadcrumb-item active text-white">Checkout</li>
+                </ol>
             </div>
             {/* Page Header End */}
 
@@ -433,13 +487,23 @@ const Checkout = () => {
                     {/* Billing Details */}
                     <div className="col-lg-7">
                         <div className="bg-light p-4 rounded shadow-sm">
-                            <h2 className="mb-4 pb-3 border-bottom">
-                                <i className="fas fa-user me-2 text-primary"></i>User Information
-                            </h2>
+                            <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                                <h2 className="mb-0">
+                                    <i className="fas fa-user me-2 text-primary"></i>Delivery Information
+                                </h2>
+                                {!user && (
+                                    <button
+                                        className="btn btn-link text-decoration-underline"
+                                        onClick={() => setShowLoginModal(true)}
+                                    >
+                                        Login Account
+                                    </button>
+                                )}
+                            </div>
 
                             <div className="row">
                                 <div className="col-md-12 mb-4">
-                                    <label className="form-label fw-bold">First Name<span className='text-danger'>*</span></label>
+                                    <label className="form-label fw-bold">Full Name<span className='text-danger'>*</span></label>
                                     <input
                                         type="text"
                                         className="form-control py-2"
@@ -479,6 +543,7 @@ const Checkout = () => {
                                         style={{ borderRadius: "8px" }}
                                     />
                                 </div>
+
                             </div>
 
                             {/* Shipping Information Section */}
@@ -616,25 +681,28 @@ const Checkout = () => {
                                 </div>
                             )}
 
-                            <div className="form-check mb-3">
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id="differentAddress"
-                                    checked={formData.differentAddress}
-                                    onChange={() => setFormData(prev => ({
-                                        ...prev,
-                                        differentAddress: !prev.differentAddress
-                                    }))}
-                                />
-                                <label className="form-check-label" htmlFor="differentAddress">
-                                    Ship to a different address
-                                </label>
-                            </div>
+                            {user && (
+                                <div className="form-check mb-3">
+                                    <input
+                                        type="checkbox"
+                                        className="form-check-input"
+                                        id="differentAddress"
 
+                                        checked={formData.differentAddress}
+                                        onChange={() => setFormData(prev => ({
+                                            ...prev,
+                                            differentAddress: !prev.differentAddress
+                                        }))}
+                                    />
+                                    <label className="form-check-label" htmlFor="differentAddress">
+                                        Ship to a different address
+                                    </label>
+                                </div>
+                            )}
                             {formData.differentAddress && (
                                 <div className="row">
                                     <div className="col-md-12 mb-4">
+
                                         <label className="form-label fw-bold">Shipping Address<span className='text-danger'>*</span></label>
                                         <input
                                             type="text"
@@ -704,19 +772,17 @@ const Checkout = () => {
                             {/* Account creation section for guest users */}
                             {!user && (
                                 <>
-                                    <div className="form-check mb-4">
-                                        <input
-                                            type="checkbox"
-                                            className="form-check-input"
-                                            checked={createAccount || otpSent}
-                                            disabled={otpSent}
-                                            onChange={(e) => setCreateAccount(e.target.checked)}
-                                            id="createAccountCheckbox"
-                                        />
-                                        <label className="form-check-label" htmlFor="createAccountCheckbox">
-                                            Create an account with this information
-                                        </label>
-                                    </div>
+                                    <label className="form-label fw-bold mb-4" htmlFor="createAccountCheckbox">
+                                        <i className="fas fa-user-plus me-1 text-primary"></i>
+                                        Create account (Set password for you)
+                                    </label>
+                                    <input
+                                        type="checkbox"
+                                        className="form-check-input d-none"
+                                        disabled={otpSent}
+
+                                        id="createAccountCheckbox"
+                                    />
 
                                     {createAccount && (
 
@@ -782,7 +848,9 @@ const Checkout = () => {
                                             ''
                                     }
                                     <div className="col-md-6 mb-4">
-                                        <label className="form-label fw-bold">OTP<span className='text-danger'>*</span></label>
+                                        <label className="form-label fw-bold">
+                                            OTP <span className='text-danger'>*</span>
+                                        </label>
                                         <input
                                             type="text"
                                             className="form-control py-2"
@@ -790,13 +858,29 @@ const Checkout = () => {
                                             value={otp}
                                             onChange={(e) => setOtp(e.target.value)}
                                         />
-                                        <button type="button"
-                                            className="btn btn-primary text-white py-2 px-3 "
-                                            style={{ borderRadius: "8px", marginTop: "13px" }}
-                                            onClick={handleVerifyOtp}>
-                                            Verify OTP
-                                        </button>
+
+                                        {/* Button group for Verify and Resend */}
+                                        <div className="d-flex gap-3 mt-3">
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary text-white py-2 px-3"
+                                                style={{ borderRadius: "8px" }}
+                                                onClick={handleVerifyOtp}
+                                            >
+                                                Verify OTP
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline-secondary py-2 px-3"
+                                                style={{ borderRadius: "8px" }}
+                                                onClick={handleResend}
+                                            >
+                                                Resend OTP
+                                            </button>
+                                        </div>
                                     </div>
+
                                 </div>
                             )}
 
@@ -943,6 +1027,139 @@ const Checkout = () => {
                 </div>
             </div>
             {/* Checkout Page End */}
+
+            {/* Bootstrap Modal */}
+            <div
+                className={`modal fade ${showLoginModal ? 'show' : ''}`}
+                style={{
+                    display: showLoginModal ? 'block' : 'none',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1050
+                }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Login to Continue</h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowLoginModal(false)}
+                                aria-label="Close"
+                            ></button>
+                        </div>
+                        <div className="modal-body">
+                            {error === 1 && (
+                                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Error!</strong> {errorMsg}
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        onClick={() => setError(-1)}
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+                            )}
+                            <form onSubmit={handleLoginSubmit}>
+                                <div className="mb-3">
+                                    <label className="form-label">Email address</label>
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        name="email"
+                                        value={loginFormData.email}
+                                        onChange={handleLoginInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Password</label>
+                                    <input
+                                        type="password"
+                                        className="form-control"
+                                        name="password"
+                                        value={loginFormData.password}
+                                        onChange={handleLoginInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <div className="form-check">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            id="rememberMe"
+                                        />
+                                        <label className="form-check-label" htmlFor="rememberMe">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="/forgot-password">Forgot password?</a>
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary w-100 text-white"
+                                    style={{ borderRadius: "8px", padding: "10px" }}
+                                >
+                                    Login
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            {showSuccessModal && (
+                <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                            <div className="modal-body p-5 text-center">
+                                <div className="mb-4">
+                                    <div className="bg-success bg-opacity-10 d-inline-flex p-3 rounded-circle">
+                                        <i className="fas fa-check-circle text-white" style={{ fontSize: '3rem' }}></i>
+                                    </div>
+                                </div>
+                                <h3 className="fw-bold mb-3">Order Placed Successfully!</h3>
+                                <p className="text-muted mb-4">
+                                    Your order ID: <span className="fw-bold text-dark">{successOrderId}</span>
+                                </p>
+                                <p className="mb-4">
+                                    We've sent the confirmation to your email. Thank you for shopping with us!
+                                </p>
+                                <button
+                                    className="btn btn-success px-4 py-2 fw-bold"
+                                    style={{ minWidth: '150px' }}
+                                    onClick={() => {
+                                        setShowSuccessModal(false);
+                                        navigate('/order');
+                                    }}
+                                >
+                                    View Orders <i className="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+
+                            {/* Decorative elements */}
+                            <div className="position-absolute top-0 end-0 m-3">
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => {
+                                        setShowSuccessModal(false);
+                                        navigate('/order');
+                                    }}
+                                ></button>
+                            </div>
+                            <div className="position-absolute bottom-0 start-0 w-100 bg-success bg-opacity-10" style={{ height: '8px' }}></div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

@@ -145,7 +145,10 @@ export const CartProvider = ({ children }) => {
     const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
     if (!guestCart.length) return;
 
+    localStorage.removeItem("guestCart");
+
     try {
+
       const res = await axios.get(
         `https://api.indiafoodshop.com/api/auth/v1/cart/user/${user._id}?country_id=${selectedCountryId}`,
         {
@@ -156,64 +159,54 @@ export const CartProvider = ({ children }) => {
       );
 
       const serverCart = res.data?.data || [];
-      console.log("Server Cart:", serverCart);
 
-      const itemsToAdd = guestCart.filter(guestItem => {
-        const guestProductId = String(guestItem.product_id).trim();
-
-        return !serverCart.some(serverItem => {
+      const serverProductIds = new Set(
+        serverCart.map(serverItem => {
           const serverProductId = typeof serverItem.product_id === 'object'
             ? serverItem.product_id._id
             : serverItem.product_id;
-          return String(serverProductId).trim() === guestProductId;
-        });
+          return String(serverProductId).trim();
+        })
+      );
+
+      // Filter items that aren't already in server cart
+      const itemsToAdd = guestCart.filter(guestItem => {
+        const guestProductId = String(guestItem.product_id).trim();
+        return !serverProductIds.has(guestProductId);
       });
 
-      console.log("Items to Add:", itemsToAdd);
+      // Process items sequentially to avoid race conditions
+      for (const item of itemsToAdd) {
+        const payload = {
+          product_id: item.product_id,
+          user_id: user._id,
+          quantity: item.quantity,
+          price: item.price,
+          shipping_charge: item.shipping_charge || 0,
+          country_id: item.country_id || selectedCountryId,
+          pieces: item.pieces,
+          product_name: item.product_details?.name || '',
+          product_image: item.product_details?.image || '',
+          product_category: item.product_details?.category || '',
+          product_description: item.product_details?.description || '',
+          admin: item.admin || user.admin || false,
+          date_time: item.date_time || new Date().toISOString(),
+        };
 
-      if (itemsToAdd.length > 0) {
-
-        for (const item of itemsToAdd) {
-          try {
-            const payload = {
-              product_id: item.product_id,
-              user_id: user._id,
-              quantity: item.quantity,
-              price: item.price,
-              shipping_charge: item.shipping_charge || 0,
-              country_id: item.country_id || selectedCountryId,
-              pieces: item.pieces,
-              product_name: item.product_details?.name || '',
-              product_image: item.product_details?.image || '',
-              product_category: item.product_details?.category || '',
-              product_description: item.product_details?.description || '',
-              admin: item.admin || user.admin || false,
-              date_time: item.date_time || new Date().toISOString(),
-            };
-
-            console.log("Sending payload:", payload);
-
-            await axios.post("https://api.indiafoodshop.com/api/auth/v1/cart", payload, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            });
-
-            console.log("Successfully added:", item.product_id);
-          } catch (err) {
-            console.error("Failed to add item:", item.product_id, err.response?.data || err.message);
-          }
-        }
+        await axios.post("https://api.indiafoodshop.com/api/auth/v1/cart", payload, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
       }
 
-      localStorage.removeItem("guestCart");
-
+      // Refresh the cart after all additions
       await fetchCart();
 
     } catch (err) {
       console.error("Merge failed:", err);
+      // Restore guest cart only if there was an error
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
-      console.log("Restored guest cart due to error");
     }
   };
 
@@ -242,6 +235,7 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to update cart:", err);
     }
   };
+
 
 
   const updateGuestCartPrices = async () => {

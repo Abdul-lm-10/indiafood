@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import Footer from "../include/footer";
 import Spinner from "../include/spinner";
+import Footer from "../include/footer";
 import { Helmet } from "react-helmet";
 import SearchModel from "../include/searchModel";
 import { Link, useParams } from "react-router-dom";
@@ -15,16 +15,49 @@ import { useCountry } from "../../context/CountryContext";
 import FAQ from "./FAQ";
 
 const ProductDetails = () => {
+    const [loading, setLoading] = useState(false);
+    let { slug } = useParams();
+    const { user } = useAuth();
+    const { selectedCountryId, currencySymbol } = useCountry();
     const { addToCart } = useCart();
-    const [loading, setLoading] = useState(true);
     const [productDetails, setProductDetails] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [selectedPriceIndex, setSelectedPriceIndex] = useState(0);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('description');
-    let { slug } = useParams();
-    const { user } = useAuth();
-    const { selectedCountryId, currencySymbol } = useCountry();
+
+
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            // setLoading(true);
+            try {
+
+                const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`);
+                if (response.data) {
+                    setProductDetails(response.data);
+                } else {
+                    setError('Product not found');
+                }
+            } catch (err) {
+                setError('Failed to load product details');
+                console.error(err);
+            } finally {
+               setTimeout(() => {
+            setLoading(true);
+        }, 2300);
+            }
+        };
+
+        fetchProductDetails();
+    }, [slug]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(true);
+        }, 2300);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleQuantityChange = (action) => {
         if (action === 'minus' && quantity > 1) {
@@ -37,43 +70,11 @@ const ProductDetails = () => {
     const handleAddToCart = () => {
         addToCart(productDetails, selectedCountryId, selectedPriceIndex, quantity);
     };
+    if (!productDetails) return null;
 
-     useEffect(() => {
-         setLoading(true);
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-        const fetchProductDetails = async () => {
-             setLoading(true);
-            try {
-               
-                const response = await axios.get(`https://api.indiafoodshop.com/admin/get-product/${slug}`);
-                if (response.data) {
-                    setProductDetails(response.data);
-                } else {
-                    setError('Product not found');
-                }
-            } catch (err) {
-                setError('Failed to load product details');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProductDetails();
-    }, [slug]);
-
-    if (loading) return <Spinner />;
-    if (error) return <div className="text-center py-5">{error}</div>;
     const countryPrices = productDetails.prices.filter(p => p.country_id === selectedCountryId);
     const selectedPrice = countryPrices[selectedPriceIndex] || countryPrices[0];
-    if (!productDetails) return <div className="text-center py-5">Product Hell not found</div>;
+
 
     return (
         <>
@@ -85,9 +86,9 @@ const ProductDetails = () => {
                 <link href="/external-assets/css/style.css" rel="stylesheet" />
                 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
             </Helmet>
-            { loading ? <Spinner /> : ""}
-            <SearchModel />
 
+            <SearchModel />
+            {!loading ? <Spinner /> : ''}
             <div className="container-fluid page-header py-5">
                 <h1 className="text-center text-white display-6">{productDetails.name}</h1>
                 <ol className="breadcrumb justify-content-center mb-0">
@@ -211,7 +212,7 @@ const ProductDetails = () => {
 
                                         {activeTab === 'reviews' && (
                                             <div className="tab-pane active">
-                                                <Reviews product_id={productDetails._id}/>
+                                                <Reviews product_id={productDetails._id} />
                                                 {user ? (
                                                     <ReviewForm productId={productDetails._id} />
                                                 ) : (
@@ -243,7 +244,10 @@ const ProductDetails = () => {
                 </div>
             </div>
             <Footer />
+
+
         </>
+
     );
 };
 

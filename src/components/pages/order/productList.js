@@ -66,7 +66,7 @@ const ProductListComponent = ({ selectedCountryId, currencySymbol, searchTerm, s
                 <div className="col-md-6 col-lg-6 col-xl-4" key={product._id}>
                     <div className="rounded position-relative fruite-item">
                         <div className="fruite-img">
-                            <Link to={`/product/${product.slug}`}>
+                            <Link to={'/product/' + product.slug}>
                                 <img
                                     src={`https://api.indiafoodshop.com${product.image}`}
                                     className="img-fluid w-100 rounded-top"
@@ -78,7 +78,7 @@ const ProductListComponent = ({ selectedCountryId, currencySymbol, searchTerm, s
                             {product.category}
                         </div>
                         <div className="p-4 border border-secondary border-top-0 rounded-bottom">
-                            <Link to={`/product/${product.slug}`}>{product.name}</Link>
+                            <Link to={'/product/'+ product.slug}>{product.name}</Link>
                             <div className="d-flex justify-content-between flex-lg-wrap">
                                 <div className="text-dark fs-5 fw-bold mb-0">
                                     {product.prices && (

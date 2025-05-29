@@ -33,6 +33,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ForgotPassword from './components/pages/user-auth/forgotPassword';
 import VerifyResetOtp from './components/pages/user-auth/verifyResetOtp';
 import ResetPassword from './components/pages/user-auth/resetPassword';
+import FloatCart from './components/include/cart';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -47,9 +48,12 @@ function App() {
         <CountryProvider>
           <CartProvider>
             <CartSyncHandler />
+           
             <Router>
+                 <FloatCart />
               <ScrollManager />
-              <Header />
+            
+              <Header />    
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/categories" element={<Categories />} />
@@ -84,6 +88,7 @@ function App() {
                 <Route path="/verify-reset-otp" element={<VerifyResetOtp />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="*" element={<NotFound />} />
+              
               </Routes>
             </Router>
           </CartProvider>

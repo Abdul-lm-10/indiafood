@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 import { Helmet } from 'react-helmet';
 import SearchModel from '../include/searchModel';
 import { Link } from 'react-router-dom';
@@ -7,27 +8,32 @@ import { Link } from 'react-router-dom';
 const OrderTracking = () => {
     const [trackingOrders, setTrackingOrders] = useState([]);
     const [selectedStatus, setSelectedStatus] = useState('Pending');
+    const { user } = useAuth();
 
-    const fetchOrdersByStatus = async (status) => {
+     const fetchOrdersByStatus = async (status) => {
+        if (!user._id) return;
+
         try {
-            const response = await axios.get(`https://api.indiafoodshop.com/admin/orders/status/${status}`, {
+            const response = await axios.get(`https://api.indiafoodshop.com/admin/orders/${user._id}/status/${status}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            console.log(response.data);
-            
+
             if (response.data.data) {
                 setTrackingOrders(response.data.data);
+            } else {
+                setTrackingOrders([]);
             }
         } catch (err) {
             console.error('Error fetching orders by status:', err);
+            setTrackingOrders([]);
         }
     };
 
     useEffect(() => {
         fetchOrdersByStatus(selectedStatus);
-    }, [selectedStatus]);
+    }, [selectedStatus, user._id]);
 
     return (
         <>
@@ -98,7 +104,7 @@ const OrderTracking = () => {
                                                                 ))}
                                                             </ul>
                                                         </td>
-                                                           <td>{order.amount}</td>
+                                                        <td>{order.amount}</td>
                                                         <td>{order.location}</td>
                                                         <td>
                                                             <span className={`badge ${order.order_status === 'Pending' ? 'bg-warning' :

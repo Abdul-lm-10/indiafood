@@ -57,7 +57,7 @@ const Login = () => {
             toast.success('OTP sent to your email');
             navigate('/verify-reset-otp', { state: { email: formData.email } });
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Something went wrong');
+            toast.error('Please enter a valid email');
         }
     };
 
