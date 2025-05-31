@@ -223,6 +223,9 @@ const Checkout = () => {
     const selectedDeliveryAddress = addressList.find(addr => addr._id === selectedAddressId);
 
     const deliveryPayload = {
+        name: formData.firstName,
+        email: formData.email,
+        phone_no:formData.mobile, 
         address: formData.address,
         city: formData.townCity,
         state: formData.state,
@@ -547,9 +550,9 @@ const Checkout = () => {
                             </div>
 
                             {/* Shipping Information Section */}
-                            <h2 className="mb-4 pb-3 border-bottom mt-4">
+                            {/* <h2 className="mb-4 pb-3 border-bottom mt-4">
                                 <i className="fas fa-map-marker-alt me-2 text-primary"></i>Shipping Information
-                            </h2>
+                            </h2> */}
 
                             {/* Display user's saved address as a card */}
                             {user && addressList.length > 0 && (

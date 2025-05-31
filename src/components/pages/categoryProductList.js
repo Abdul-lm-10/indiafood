@@ -14,7 +14,7 @@ const CategoryProductList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("default");
     const [loading, setLoading] = useState(true);
-    let { id } = useParams();
+    let { slug } = useParams();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -81,7 +81,7 @@ const CategoryProductList = () => {
 
 
                                         <CategoryProductListComponent
-                                            categoryId={id}
+                                            categoryId={slug}
                                             searchTerm={searchTerm}
                                             sortOption={sortOption}
                                         />

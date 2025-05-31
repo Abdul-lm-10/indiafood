@@ -32,7 +32,7 @@ const CategoryProductListComponent = ({ categoryId, searchTerm, sortOption }) =>
         let sorted = [...products];
 
         // Filter by categoryId first
-        sorted = sorted.filter(product => product.category_id === categoryId);
+        sorted = sorted.filter(product => product.category === categoryId);
 
         // Then apply search and sorting
         const getLowestPrice = (product) => {
